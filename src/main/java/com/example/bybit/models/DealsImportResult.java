@@ -1,5 +1,9 @@
 package com.example.bybit.models;
 
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,13 +12,13 @@ import java.util.Map;
 
 public class DealsImportResult {
     /** Список ошибок при обработке транзакций */
-    private final List<DealImportError> errors = new ArrayList<>();
+    private List<DealImportError> errors = new ArrayList<>();
 
     /** Список обработанных транзакций */
-    private final List<ImportTradeDataHolder> transactions = new ArrayList<>();
+    private List<ImportTradeDataHolder> transactions = new ArrayList<>();
 
     /** Список данных по активам/бумагам (необходимые для создания сущности в системе) */
-    private final List<AssetModel> assetMetaData = new ArrayList<>();
+    private List<AssetModel> assetMetaData = new ArrayList<>();
 
     /** Список балансов по заданному аккаунту */
     private Map<String, BigDecimal> currentMoneyRemainders = new HashMap<>();
@@ -40,6 +44,21 @@ public class DealsImportResult {
         this.currentMoneyRemainders = currentMoneyRemainders;
     }
 
+    public void setCurrentMoneyRemainders(JSONObject response) throws JSONException {
+        Map<String, BigDecimal> currentMoneyRemainders = new HashMap<>();
+        JSONArray balances = response.getJSONObject("result").getJSONArray("list");
+        for (int j = 0; j < balances.length(); j++) {
+            JSONArray coins = balances.getJSONObject(j).getJSONArray("coin");
+            for (int i = 0; i < coins.length(); i++) {
+                JSONObject coin = coins.getJSONObject(i);
+                String key = coin.getString("coin");
+                BigDecimal value = new BigDecimal(coin.getString("walletBalance"));
+                currentMoneyRemainders.put(key, value);
+            }
+        }
+        this.currentMoneyRemainders = currentMoneyRemainders;
+    }
+
     public String getGeneralError() {
         return generalError;
     }
@@ -54,6 +73,38 @@ public class DealsImportResult {
 
     public void setReportValid(boolean reportValid) {
         this.reportValid = reportValid;
+    }
+
+    public List<DealImportError> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<DealImportError> errors) {
+        this.errors = errors;
+    }
+
+    public List<ImportTradeDataHolder> getTransactions() {
+        return transactions;
+    }
+
+    public List<AssetModel> getAssetMetaData() {
+        return assetMetaData;
+    }
+
+    public void setAssetMetaData(List<AssetModel> assetMetaData) {
+        this.assetMetaData = assetMetaData;
+    }
+
+    public void setTransactions(List<ImportTradeDataHolder> transactions) {
+        this.transactions = transactions;
+    }
+
+    public ParseInstruction getParseInstruction() {
+        return parseInstruction;
+    }
+
+    public void setParseInstruction(ParseInstruction parseInstruction) {
+        this.parseInstruction = parseInstruction;
     }
 
     public DealsImportResult(Map<String, BigDecimal> currentMoneyRemainders, String generalError, boolean reportValid) {
