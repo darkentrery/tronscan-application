@@ -40,7 +40,7 @@ public class BybitServiceImpl implements BybitService{
         this.API_SECRET = API_SECRET;
     }
 
-    private JSONObject getV5Response(String API_KEY, String API_SECRET, String cursor, String endpoint) throws NoSuchAlgorithmException, InvalidKeyException {
+    private JSONObject getV5Response(String API_KEY, String API_SECRET, String cursor, String endpoint) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String TIMESTAMP = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
 //        String queryString = "accountType=UNIFIED&category=spot&currency=BTC";
         String queryString = "accountType=UNIFIED&limit=5";
@@ -80,11 +80,18 @@ public class BybitServiceImpl implements BybitService{
         return json;
     }
 
-    private JSONObject getTransactionLog(String API_KEY, String API_SECRET, String cursor) throws NoSuchAlgorithmException, InvalidKeyException {
-        return this.getV5Response(API_KEY, API_SECRET, cursor, "/v5/account/transaction-log");
+    private JSONObject getTransactionLog(String API_KEY, String API_SECRET, String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+        JSONObject transactions = this.getV5Response(API_KEY, API_SECRET, cursor, "/v5/account/transaction-log");
+        if (transactions.getInt("retCode") == 10016) {
+            Thread.sleep(3000);
+            String time = ZonedDateTime.now().toString();
+            System.out.println(time);
+            return this.getTransactionLog(API_KEY, API_SECRET, cursor);
+        }
+        return transactions;
     }
 
-    private JSONObject getWalletBalance(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException {
+    private JSONObject getWalletBalance(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         return this.getV5Response(API_KEY, API_SECRET, "", "/v5/account/wallet-balance");
     }
 
@@ -94,23 +101,47 @@ public class BybitServiceImpl implements BybitService{
         return this.getV1Response("/spot/v1/account", params);
     }
 
-    private JSONObject getV1TradeHistory() throws NoSuchAlgorithmException, InvalidKeyException {
-        String startTime = Long.toString(ZonedDateTime.now().minusMonths(1).toInstant().toEpochMilli());
+    private JSONObject getV1TradeHistory(int countMonth) throws NoSuchAlgorithmException, InvalidKeyException {
+        String endTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth).toInstant().toEpochMilli());
+        String startTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth + 1).toInstant().toEpochMilli());
         List<String> params = new ArrayList<>();
         params.add(String.format("api_key=%s", this.API_KEY));
+        params.add(String.format("endTime=%s", endTime));
         params.add(String.format("startTime=%s", startTime));
         return this.getV1Response("/spot/v1/myTrades", params);
     }
 
-    private JSONObject getV1HistoryOrders() throws NoSuchAlgorithmException, InvalidKeyException {
-        String startTime = Long.toString(ZonedDateTime.now().minusMonths(1).toInstant().toEpochMilli());
+    private List<JSONObject> getV1AllTradeHistory() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
+        List<JSONObject> trades = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Thread.sleep(500);
+            JSONObject tradeObject = this.getV1TradeHistory(i);
+            trades.add(tradeObject);
+        }
+        return trades;
+    }
+
+    private JSONObject getV1HistoryOrders(int countMonth) throws NoSuchAlgorithmException, InvalidKeyException {
+        String endTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth).toInstant().toEpochMilli());
+        String startTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth + 1).toInstant().toEpochMilli());
         List<String> params = new ArrayList<>();
         params.add(String.format("api_key=%s", this.API_KEY));
+        params.add(String.format("endTime=%s", endTime));
         params.add(String.format("startTime=%s", startTime));
         return this.getV1Response("/spot/v1/history-orders", params);
     }
 
-    private List<JSONObject> getAllResponses(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException {
+    private List<JSONObject> getV1AllHistoryOrders() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
+        List<JSONObject> orders = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            Thread.sleep(500);
+            JSONObject tradeObject = this.getV1HistoryOrders(i);
+            orders.add(tradeObject);
+        }
+        return orders;
+    }
+
+    private List<JSONObject> getAllResponses(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String cursor = "";
         List<JSONObject> responses = new ArrayList<>();
         JSONObject jsonTransactions = this.getTransactionLog(API_KEY, API_SECRET, cursor);
@@ -118,6 +149,7 @@ public class BybitServiceImpl implements BybitService{
             cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
             responses.add(jsonTransactions);
             while (!cursor.equals("null")) {
+                Thread.sleep(500);
                 jsonTransactions = this.getTransactionLog(API_KEY, API_SECRET, cursor);
                 cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
                 responses.add(jsonTransactions);
@@ -130,7 +162,6 @@ public class BybitServiceImpl implements BybitService{
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
         List<JSONObject> responses = this.getAllResponses(API_KEY, API_SECRET);
         for (JSONObject response : responses) {
-            Thread.sleep(200);
             JSONArray jsonTransactions = null;
             try {
                 jsonTransactions = response.getJSONObject("result").getJSONArray("list");
@@ -140,35 +171,48 @@ public class BybitServiceImpl implements BybitService{
                     transactions.add(tradeDataHolder);
                 }
             } catch (JSONException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
         return transactions;
     }
 
-    private List<ImportTradeDataHolder> getV1Trades() throws NoSuchAlgorithmException, InvalidKeyException, JSONException {
+    private List<ImportTradeDataHolder> getV1Trades() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
-        JSONObject response = this.getV1TradeHistory();
-        JSONArray jsonTransactions = response.getJSONArray("result");
-        for (int i = 0; i < jsonTransactions.length(); i++) {
-            JSONObject transaction = jsonTransactions.getJSONObject(i);
-            V1TradeObject tradeObject = new V1TradeObject(transaction);
-            ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(tradeObject);
-            transactions.add(tradeDataHolder);
+        List<JSONObject> tradeList = this.getV1AllTradeHistory();
+        for (JSONObject trade : tradeList) {
+            try {
+                JSONArray jsonTransactions = trade.getJSONArray("result");
+                for (int i = 0; i < jsonTransactions.length(); i++) {
+                    JSONObject transaction = jsonTransactions.getJSONObject(i);
+                    V1TradeObject tradeObject = new V1TradeObject(transaction);
+                    ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(tradeObject);
+                    transactions.add(tradeDataHolder);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         return transactions;
     }
 
-    private List<ImportTradeDataHolder> getV1Orders() throws NoSuchAlgorithmException, InvalidKeyException, JSONException {
+    private List<ImportTradeDataHolder> getV1Orders() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
-        JSONObject response = this.getV1HistoryOrders();
-        JSONArray jsonTransactions = response.getJSONArray("result");
-        for (int i = 0; i < jsonTransactions.length(); i++) {
-            JSONObject transaction = jsonTransactions.getJSONObject(i);
-            if (!transaction.getString("status").equals("CANCELED")) {
-                V1OrderObject tradeObject = new V1OrderObject(transaction);
-                ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(tradeObject);
-                transactions.add(tradeDataHolder);
+        List<JSONObject> ordersList = this.getV1AllHistoryOrders();
+        for (JSONObject order : ordersList) {
+            try {
+                JSONArray jsonTransactions = order.getJSONArray("result");
+                for (int i = 0; i < jsonTransactions.length(); i++) {
+                    JSONObject transaction = jsonTransactions.getJSONObject(i);
+                    if (!transaction.getString("status").equals("CANCELED")) {
+                        V1OrderObject tradeObject = new V1OrderObject(transaction);
+                        ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(tradeObject);
+                        transactions.add(tradeDataHolder);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                System.out.println(order);
             }
         }
         return transactions;
@@ -176,29 +220,31 @@ public class BybitServiceImpl implements BybitService{
 
     @Override
     public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
-        this.setAPI_KEY(API_KEY);
-        this.setAPI_SECRET(API_SECRET);
+        DealsImportResult result = new DealsImportResult();
+        if (API_KEY != null && API_SECRET != null) {
+            this.setAPI_KEY(API_KEY);
+            this.setAPI_SECRET(API_SECRET);
 
-        JSONObject v1Balance = this.getV1WalletBalance();
-        List<ImportTradeDataHolder> orders = this.getV1Orders();
-        List<ImportTradeDataHolder> trades = this.getV1Trades();
-        for (ImportTradeDataHolder trade : trades) {
-            for (ImportTradeDataHolder order : orders) {
-                if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
-                    trade.setOperation(order.getOperation());
+            JSONObject v1Balance = this.getV1WalletBalance();
+            List<ImportTradeDataHolder> orders = this.getV1Orders();
+            List<ImportTradeDataHolder> trades = this.getV1Trades();
+            for (ImportTradeDataHolder trade : trades) {
+                for (ImportTradeDataHolder order : orders) {
+                    if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
+                        trade.setOperation(order.getOperation());
+                    }
                 }
             }
-        }
 
-        List<ImportTradeDataHolder> transactions = this.getTransactions(API_KEY, API_SECRET);
-        JSONObject balance = this.getWalletBalance(API_KEY, API_SECRET);
-        DealsImportResult result = new DealsImportResult();
-        result.extendTransactions(transactions);
-        result.setCurrentMoneyRemainders(balance);
-        result.extendTransactions(trades);
-        if (v1Balance != null) {
-            V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
-            result.setCurrentMoneyRemainders(v1BalanceObject);
+            List<ImportTradeDataHolder> transactions = this.getTransactions(API_KEY, API_SECRET);
+            JSONObject balance = this.getWalletBalance(API_KEY, API_SECRET);
+            result.extendTransactions(transactions);
+            result.setCurrentMoneyRemainders(balance);
+            result.extendTransactions(trades);
+            if (v1Balance != null) {
+                V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
+                result.setCurrentMoneyRemainders(v1BalanceObject);
+            }
         }
         return result;
     };

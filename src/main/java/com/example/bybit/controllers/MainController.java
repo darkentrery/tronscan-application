@@ -1,5 +1,6 @@
 package com.example.bybit.controllers;
 
+import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
@@ -7,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-//@RequestMapping("/")
-//@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping()
+//@CrossOrigin(origins = "http://127.0.0.1:8080")
 
 public class MainController {
 
@@ -28,12 +28,13 @@ public class MainController {
     @Autowired
     private TronService tronService;
 
-
     final static String address = "TASUAUKXCqvwYjesEWv22pFjRsCeF4NKot";
 
-    @GetMapping("/")
-    public ResponseEntity<DealsImportResult> getBybitData() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
-        DealsImportResult response = bybitService.getBybitDealImportResult(API_KEY, API_SECRET);
+    @PostMapping("/")
+    public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+        String apiKey = credentials.getAccessKey();
+        String apiSecret = credentials.getSecretKey();
+        DealsImportResult response = bybitService.getBybitDealImportResult(apiKey, apiSecret);
         return ResponseEntity.ok(response);
     }
 

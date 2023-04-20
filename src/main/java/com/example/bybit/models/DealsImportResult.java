@@ -61,12 +61,16 @@ public class DealsImportResult {
 
     public void setCurrentMoneyRemainders(V1BalanceObject object) throws JSONException {
         if (object != null) {
-            JSONArray balances = object.getJSONObject("result").getJSONArray("balances");
-            for (int i = 0; i < balances.length(); i++) {
-                JSONObject coin = balances.getJSONObject(i);
-                String key = coin.getString("coin");
-                BigDecimal value = new BigDecimal(coin.getString("total"));
-                this.currentMoneyRemainders.put(key, value);
+            try {
+                JSONArray balances = object.getJSONObject("result").getJSONArray("balances");
+                for (int i = 0; i < balances.length(); i++) {
+                    JSONObject coin = balances.getJSONObject(i);
+                    String key = coin.getString("coin");
+                    BigDecimal value = new BigDecimal(coin.getString("total"));
+                    this.currentMoneyRemainders.put(key, value);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }

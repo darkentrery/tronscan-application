@@ -228,12 +228,16 @@ public class ImportTradeDataHolder {
 
     public ImportTradeDataHolder(JSONObject object) throws JSONException {
         this.price = !object.getString("tradePrice").equals("") ? new BigDecimal(object.getString("tradePrice")) : null;
-//        this.operation = Operation.AMORTIZATION;
+        String operation = object.getString("type");
+        if (operation.equals("TRADE") && object.getString("side").equals("Sell")) {
+            operation = "-TRADE";
+        }
+        this.setOperation(operation);
         this.date = new Date(Long.parseLong(object.getString("transactionTime")));
         this.quantity = !object.getString("qty").equals("") ? new BigDecimal(object.getString("qty")) : null;
         this.fee = !object.getString("fee").equals("") ? new BigDecimal(object.getString("fee")) : BigDecimal.ZERO;
         this.currency = object.getString("currency");
-        this.tradeSystemId = object.getString("tradeId");
+        this.tradeSystemId = object.getString("orderId");
     }
 
     public ImportTradeDataHolder(V1TradeObject object) throws JSONException {
