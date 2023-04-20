@@ -4,9 +4,7 @@ import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class ImportTradeDataHolder {
     /** цена из транзакции */
@@ -78,6 +76,17 @@ public class ImportTradeDataHolder {
 
     public void setOperation(Operation operation) {
         this.operation = operation;
+    }
+
+    public void setOperation(String operation) {
+        try {
+            this.operation = Operation.valueOf(operation);
+        } catch (IllegalArgumentException e) {
+            String value = this.operationMapping().get(operation);
+            if (!value.equals("")) {
+                this.operation = Operation.valueOf(value);
+            }
+        }
     }
 
     public Date getDate() {
@@ -200,13 +209,50 @@ public class ImportTradeDataHolder {
         this.tradePreferredType = tradePreferredType;
     }
 
-    public ImportTradeDataHolder(JSONObject transaction) throws JSONException {
-        this.price = !transaction.getString("tradePrice").equals("") ? new BigDecimal(transaction.getString("tradePrice")) : null;
+    private Map<String, String> operationMapping() {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("TRANSFER_IN", "SHARE_IN");
+        map.put("TRANSFER_OUT", "SHARE_OUT");
+        map.put("TRADE", "BUY");
+        map.put("-TRADE", "SELL");
+        map.put("CURRENCY_BUY", "BUY");
+        map.put("CURRENCY_SELL", "SELL");
+        map.put("SETTLEMENT", "");
+        map.put("DELIVERY", "");
+        map.put("LIQUIDATION", "");
+        map.put("BONUS", "");
+        map.put("FEE_REFUND", "");
+        map.put("INTEREST", "");
+        return map;
+    }
+
+    public ImportTradeDataHolder(JSONObject object) throws JSONException {
+        this.price = !object.getString("tradePrice").equals("") ? new BigDecimal(object.getString("tradePrice")) : null;
 //        this.operation = Operation.AMORTIZATION;
-        this.date = new Date(Long.parseLong(transaction.getString("transactionTime")));
-        this.quantity = !transaction.getString("qty").equals("") ? new BigDecimal(transaction.getString("qty")) : null;
-        this.fee = !transaction.getString("fee").equals("") ? new BigDecimal(transaction.getString("fee")) : BigDecimal.ZERO;
-        this.currency = transaction.getString("currency");
-        this.tradeSystemId = transaction.getString("tradeId");
+        this.date = new Date(Long.parseLong(object.getString("transactionTime")));
+        this.quantity = !object.getString("qty").equals("") ? new BigDecimal(object.getString("qty")) : null;
+        this.fee = !object.getString("fee").equals("") ? new BigDecimal(object.getString("fee")) : BigDecimal.ZERO;
+        this.currency = object.getString("currency");
+        this.tradeSystemId = object.getString("tradeId");
+    }
+
+    public ImportTradeDataHolder(V1TradeObject object) throws JSONException {
+        this.price = !object.getString("price").equals("") ? new BigDecimal(object.getString("price")) : null;
+        this.date = new Date(Long.parseLong(object.getString("time")));
+        this.quantity = !object.getString("qty").equals("") ? new BigDecimal(object.getString("qty")) : null;
+        this.fee = !object.getJSONObject("fee").getString("fee").equals("") ? new BigDecimal(object.getJSONObject("fee").getString("fee")) : BigDecimal.ZERO;
+        this.currency = object.getString("symbol");
+        this.tradeSystemId = object.getString("orderId");
+        this.feeCurrency = object.getJSONObject("fee").getString("feeTokenName");
+    }
+
+    public ImportTradeDataHolder(V1OrderObject object) throws JSONException {
+        this.price = !object.getString("price").equals("") ? new BigDecimal(object.getString("price")) : null;
+        this.date = new Date(Long.parseLong(object.getString("time")));
+        this.quantity = !object.getString("executedQty").equals("") ? new BigDecimal(object.getString("executedQty")) : null;
+        this.currency = object.getString("symbol");
+        this.tradeSystemId = object.getString("orderId");
+        String operation = object.getString("side");
+        this.setOperation(operation);
     }
 }

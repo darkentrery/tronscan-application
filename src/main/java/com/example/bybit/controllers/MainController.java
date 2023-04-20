@@ -28,7 +28,8 @@ public class MainController {
     @Autowired
     private TronService tronService;
 
-//
+
+    final static String address = "TASUAUKXCqvwYjesEWv22pFjRsCeF4NKot";
 
     @GetMapping("/")
     public ResponseEntity<DealsImportResult> getBybitData() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
@@ -36,7 +37,7 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/tron/")
+    @GetMapping("/tron")
     public DealsImportResult getTronData() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
 
         JSONObject response2 = tronService.getTronResponse(address);

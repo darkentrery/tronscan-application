@@ -44,19 +44,31 @@ public class DealsImportResult {
         this.currentMoneyRemainders = currentMoneyRemainders;
     }
 
-    public void setCurrentMoneyRemainders(JSONObject response) throws JSONException {
-        Map<String, BigDecimal> currentMoneyRemainders = new HashMap<>();
-        JSONArray balances = response.getJSONObject("result").getJSONArray("list");
-        for (int j = 0; j < balances.length(); j++) {
-            JSONArray coins = balances.getJSONObject(j).getJSONArray("coin");
-            for (int i = 0; i < coins.length(); i++) {
-                JSONObject coin = coins.getJSONObject(i);
-                String key = coin.getString("coin");
-                BigDecimal value = new BigDecimal(coin.getString("walletBalance"));
-                currentMoneyRemainders.put(key, value);
+    public void setCurrentMoneyRemainders(JSONObject object) throws JSONException {
+        if (object != null) {
+            JSONArray balances = object.getJSONObject("result").getJSONArray("list");
+            for (int j = 0; j < balances.length(); j++) {
+                JSONArray coins = balances.getJSONObject(j).getJSONArray("coin");
+                for (int i = 0; i < coins.length(); i++) {
+                    JSONObject coin = coins.getJSONObject(i);
+                    String key = coin.getString("coin");
+                    BigDecimal value = new BigDecimal(coin.getString("walletBalance"));
+                    this.currentMoneyRemainders.put(key, value);
+                }
             }
         }
-        this.currentMoneyRemainders = currentMoneyRemainders;
+    }
+
+    public void setCurrentMoneyRemainders(V1BalanceObject object) throws JSONException {
+        if (object != null) {
+            JSONArray balances = object.getJSONObject("result").getJSONArray("balances");
+            for (int i = 0; i < balances.length(); i++) {
+                JSONObject coin = balances.getJSONObject(i);
+                String key = coin.getString("coin");
+                BigDecimal value = new BigDecimal(coin.getString("total"));
+                this.currentMoneyRemainders.put(key, value);
+            }
+        }
     }
 
     public String getGeneralError() {
@@ -97,6 +109,12 @@ public class DealsImportResult {
 
     public void setTransactions(List<ImportTradeDataHolder> transactions) {
         this.transactions = transactions;
+    }
+
+    public void extendTransactions(List<ImportTradeDataHolder> transactions) {
+        for (ImportTradeDataHolder transaction : transactions) {
+            this.transactions.add(transaction);
+        }
     }
 
     public ParseInstruction getParseInstruction() {
