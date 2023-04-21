@@ -15,10 +15,9 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class TronServiceImpl implements TronService {
@@ -27,6 +26,7 @@ public class TronServiceImpl implements TronService {
 
     private String address;
     private final String URL = "https://api.trongrid.io";
+    private String minTimestamp = "0";
 
     public String getAddress() {
         return address;
@@ -36,9 +36,23 @@ public class TronServiceImpl implements TronService {
         this.address = address;
     }
 
+    public String getMinTimestamp() {
+        return minTimestamp;
+    }
+
+    public void setMinTimestamp(String minTimestamp) {
+        try {
+            ZonedDateTime date = LocalDate.parse(minTimestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay(ZoneId.of("UTC"));
+            long epochMilli = date.toInstant().toEpochMilli();
+            this.minTimestamp = Long.toString(epochMilli);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public JSONObject getTronResponse(String endpoint) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
-        String url = String.format("%s%s", this.URL, endpoint);
+        String url = String.format("%s%s&min_timestamp=%s", this.URL, endpoint, this.minTimestamp);
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -54,8 +68,6 @@ public class TronServiceImpl implements TronService {
         MediaType mediaType = MediaType.parse("application/json");
         String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}", address);
         RequestBody body = RequestBody.create(mediaType, bodyContent);
-//        RequestBody body = RequestBody.create(mediaType, "{\"account_identifier\":{\"address\":\"TASUAUKXCqvwYjesEWv22pFjRsCeF4NKot\"},\"block_identifier\":{\"hash\":\"0000000000010c4a732d1e215e87466271e425c86945783c3d3f122bfa5affd9\",\"number\":68682},\"visible\":true}");
-
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
@@ -187,11 +199,12 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public DealsImportResult getTronDetailImportResult(String address) throws JSONException, InterruptedException {
+    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, InterruptedException {
         DealsImportResult result = new DealsImportResult();
         this.setAddress(address);
-//        Map<String, BigDecimal> assets = this.getAccountAssets();
-//        result.setCurrentMoneyRemainders(assets);
+        this.setMinTimestamp(startDate);
+        Map<String, BigDecimal> assets = this.getAccountAssets();
+        result.setCurrentMoneyRemainders(assets);
         List<ImportTradeDataHolder> tradeDataHolders = this.getTradeDataHolders();
         List<ImportTradeDataHolder> trc20TradeDataHolders = this.getTrc20TradeDataHolders();
         List<String> numbers = new ArrayList<>();

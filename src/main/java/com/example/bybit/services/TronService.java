@@ -6,5 +6,5 @@ import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 
 public interface TronService {
-    public DealsImportResult getTronDetailImportResult(String address) throws JSONException, InterruptedException;
+    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, InterruptedException;
 }

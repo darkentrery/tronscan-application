@@ -13,9 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @RestController
-@RequestMapping()
-//@CrossOrigin(origins = "http://127.0.0.1:8080")
-
+@RequestMapping("/input")
 public class MainController {
 
     @Autowired
@@ -24,18 +22,20 @@ public class MainController {
     @Autowired
     private TronService tronService;
 
-    @PostMapping("/")
+    @PostMapping("/credentials")
     public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String apiKey = credentials.getAccessKey();
         String apiSecret = credentials.getSecretKey();
+        String startDate = credentials.getStartDate();
         DealsImportResult response = bybitService.getBybitDealImportResult(apiKey, apiSecret);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/tron")
+    @PostMapping("/credentials/tron")
     public ResponseEntity<DealsImportResult> getTronData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String address = credentials.getAddress();
-        DealsImportResult response = tronService.getTronDetailImportResult(address);
+        String startDate = credentials.getStartDate();
+        DealsImportResult response = tronService.getTronDetailImportResult(address, startDate);
         return ResponseEntity.ok(response);
     }
 
