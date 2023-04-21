@@ -8,5 +8,5 @@ import java.security.NoSuchAlgorithmException;
 
 public interface BybitService {
 
-    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException;
+    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET, String startDate) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException;
 }

@@ -27,16 +27,15 @@ public class MainController {
         String apiKey = credentials.getAccessKey();
         String apiSecret = credentials.getSecretKey();
         String startDate = credentials.getStartDate();
-        DealsImportResult response = bybitService.getBybitDealImportResult(apiKey, apiSecret);
+        DealsImportResult response = bybitService.getBybitDealImportResult(apiKey, apiSecret, startDate);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/credentials/tron")
-    public ResponseEntity<DealsImportResult> getTronData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+    public ResponseEntity<DealsImportResult> getTronData(@RequestBody Credentials credentials) throws JSONException, InterruptedException {
         String address = credentials.getAddress();
         String startDate = credentials.getStartDate();
         DealsImportResult response = tronService.getTronDetailImportResult(address, startDate);
         return ResponseEntity.ok(response);
     }
-
 }

@@ -52,7 +52,7 @@ public class TronServiceImpl implements TronService {
 
     public JSONObject getTronResponse(String endpoint) {
         OkHttpClient client = new OkHttpClient().newBuilder().build();
-        String url = String.format("%s%s&min_timestamp=%s", this.URL, endpoint, this.minTimestamp);
+        String url = String.format("%s%s", this.URL, endpoint);
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -79,12 +79,12 @@ public class TronServiceImpl implements TronService {
     }
 
     private JSONObject getTransactionsInfoByAddress() {
-        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50", this.address);
+        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s", this.address, this.minTimestamp);
         return this.getTronResponse(endpoint);
     }
 
     private JSONObject getTransactionsInfoByAddress(String fingerprint) {
-        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&fingerprint=%s", this.address, fingerprint);
+        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s&fingerprint=%s", this.address, this.minTimestamp, fingerprint);
         return this.getTronResponse(endpoint);
     }
 
@@ -93,13 +93,8 @@ public class TronServiceImpl implements TronService {
         return this.getTronResponse(endpoint);
     }
 
-    private JSONObject getAccountInfo(String address) {
-        String endpoint = String.format("/v1/accounts/%s", address);
-        return this.getTronResponse(endpoint);
-    }
-
     private JSONObject getAssetTrc10Info(String identifier) {
-        String endpoint = String.format("/v1/assets/%S", identifier);
+        String endpoint = String.format("/v1/assets/%s", identifier);
         return this.getTronResponse(endpoint);
     }
 
@@ -108,12 +103,12 @@ public class TronServiceImpl implements TronService {
     }
 
     private JSONObject getTrc20TransactionsInfoByAddress() {
-        String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200", this.address);
+        String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&min_timestamp=%s", this.address, this.minTimestamp);
         return this.getTronResponse(endpoint);
     }
 
     private JSONObject getTrc20TransactionsInfoByAddress(String fingerprint) {
-        String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&fingerprint=%s", this.address, fingerprint);
+        String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&min_timestamp=%s&fingerprint=%s", this.address, this.minTimestamp, fingerprint);
         return this.getTronResponse(endpoint);
     }
 
