@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface BybitV1Service {
-    public JSONObject getV1WalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
-    public List<ImportTradeDataHolder> getV1Trades() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
-    public List<ImportTradeDataHolder> getV1Orders() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
-    public void setParameters(Map<String, String> parameters);
+    JSONObject getV1WalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
+    List<ImportTradeDataHolder> getV1Trades() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
+    List<ImportTradeDataHolder> getV1Orders() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
+    void setParameters(Map<String, String> parameters);
 }

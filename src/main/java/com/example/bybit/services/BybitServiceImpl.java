@@ -104,5 +104,5 @@ public class BybitServiceImpl implements BybitService{
             }
         }
         return result;
-    };
+    }
 }

@@ -58,8 +58,7 @@ public class TronServiceImpl implements TronService {
                 .get()
                 .addHeader("Content-Type", "application/json")
                 .build();
-        JSONObject json = convertService.getJsonObject(client, request);
-        return json;
+        return convertService.getJsonObject(client, request);
     }
 
     public JSONObject postTronResponse(String endpoint, String address) {
@@ -74,8 +73,7 @@ public class TronServiceImpl implements TronService {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("accept", "application/json")
                 .build();
-        JSONObject json = convertService.getJsonObject(client, request);
-        return json;
+        return convertService.getJsonObject(client, request);
     }
 
     private JSONObject getTransactionsInfoByAddress() {

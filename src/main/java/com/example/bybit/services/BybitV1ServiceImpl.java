@@ -102,15 +102,14 @@ public class BybitV1ServiceImpl extends BybitAbstractService implements BybitV1S
                 .get()
                 .addHeader("Content-Type", "application/json")
                 .build();
-        JSONObject json = convertService.getJsonObject(client, request);
-        return json;
+        return convertService.getJsonObject(client, request);
     }
 
     private JSONObject getV1TradeHistory(ZonedDateTime startDate, ZonedDateTime endDate) throws NoSuchAlgorithmException, InvalidKeyException {
         List<String> params = new ArrayList<>();
         params.add(String.format("api_key=%s", this.API_KEY));
-        params.add(String.format("endTime=%s", Long.toString(endDate.toInstant().toEpochMilli())));
-        params.add(String.format("startTime=%s", Long.toString(startDate.toInstant().toEpochMilli())));
+        params.add(String.format("endTime=%s", endDate.toInstant().toEpochMilli()));
+        params.add(String.format("startTime=%s", startDate.toInstant().toEpochMilli()));
         return this.getV1Response("/spot/v1/myTrades", params);
     }
 

@@ -20,7 +20,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
     @Override
     public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
-        List<JSONObject> responses = this.getAllResponses(API_KEY, API_SECRET);
+        List<JSONObject> responses = this.getAllResponses();
         for (JSONObject response : responses) {
             try {
                 JSONArray jsonTransactions = response.getJSONObject("result").getJSONArray("list");
@@ -42,7 +42,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return this.getV5Response("", "/v5/account/wallet-balance", queryString);
     }
 
-    private List<JSONObject> getAllResponses(String API_KEY, String API_SECRET) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+    private List<JSONObject> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String cursor = "";
         List<JSONObject> responses = new ArrayList<>();
         JSONObject jsonTransactions = this.getTransactionLog(cursor);
@@ -88,7 +88,6 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
                 .addHeader("X-BAPI-RECV-WINDOW", this.RECV_WINDOW)
                 .addHeader("Content-Type", "application/json")
                 .build();
-        JSONObject json = convertService.getJsonObject(client, request);
-        return json;
+        return convertService.getJsonObject(client, request);
     }
 }

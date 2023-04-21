@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface BybitV5Service {
-    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
-    public JSONObject getWalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
-    public void setParameters(Map<String, String> parameters);
+    List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
+    JSONObject getWalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
+    void setParameters(Map<String, String> parameters);
 }
