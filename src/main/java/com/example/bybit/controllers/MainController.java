@@ -6,15 +6,11 @@ import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping()
@@ -28,8 +24,6 @@ public class MainController {
     @Autowired
     private TronService tronService;
 
-    final static String address = "TASUAUKXCqvwYjesEWv22pFjRsCeF4NKot";
-
     @PostMapping("/")
     public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String apiKey = credentials.getAccessKey();
@@ -38,16 +32,11 @@ public class MainController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/tron")
-    public DealsImportResult getTronData() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
-
-        JSONObject response2 = tronService.getTronResponse(address);
-
-        Map<String, BigDecimal> currentMoneyRemainders = new HashMap<>();
-        currentMoneyRemainders.put("1", BigDecimal.valueOf(32435333));
-        DealsImportResult deal = new DealsImportResult();
-
-        return new DealsImportResult(currentMoneyRemainders, "jh", false);
+    @PostMapping("/tron")
+    public ResponseEntity<DealsImportResult> getTronData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+        String address = credentials.getAddress();
+        DealsImportResult response = tronService.getTronDetailImportResult(address);
+        return ResponseEntity.ok(response);
     }
 
 }

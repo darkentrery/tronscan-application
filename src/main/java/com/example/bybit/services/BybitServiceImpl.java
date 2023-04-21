@@ -166,7 +166,7 @@ public class BybitServiceImpl implements BybitService{
             try {
                 jsonTransactions = response.getJSONObject("result").getJSONArray("list");
                 for (int i = 0; i < jsonTransactions.length(); i++) {
-                    JSONObject transaction = jsonTransactions.getJSONObject(i);
+                    V5TradeObject transaction = new V5TradeObject(jsonTransactions.getJSONObject(i));
                     ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction);
                     transactions.add(tradeDataHolder);
                 }
