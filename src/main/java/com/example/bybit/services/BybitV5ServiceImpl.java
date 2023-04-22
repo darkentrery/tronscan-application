@@ -47,12 +47,11 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         List<JSONObject> responses = new ArrayList<>();
         JSONObject jsonTransactions = this.getTransactionLog(cursor);
         if (jsonTransactions.getInt("retCode") == 0) {
-            cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
             responses.add(jsonTransactions);
-            while (!cursor.equals("null")) {
+            while (jsonTransactions.getJSONObject("result").get("nextPageCursor") != JSONObject.NULL) {
+                cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
                 Thread.sleep(500);
                 jsonTransactions = this.getTransactionLog(cursor);
-                cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
                 responses.add(jsonTransactions);
             }
         }

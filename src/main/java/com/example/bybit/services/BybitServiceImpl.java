@@ -26,7 +26,7 @@ public class BybitServiceImpl implements BybitService{
     private BybitV5Service bybitV5Service;
 
     private final String RECV_WINDOW = "5000";
-    private final String URL = "https://api-testnet.bybit.com";
+    private final String URL = "https://api.bybit.com";
     private String API_KEY;
     private String API_SECRET;
     private String minTimestamp = "0";

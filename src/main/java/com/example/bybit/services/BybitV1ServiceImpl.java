@@ -113,23 +113,31 @@ public class BybitV1ServiceImpl extends BybitAbstractService implements BybitV1S
         return this.getV1Response("/spot/v1/myTrades", params);
     }
 
-    private JSONObject getV1HistoryOrders(int countMonth) throws NoSuchAlgorithmException, InvalidKeyException {
-        String endTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth).toInstant().toEpochMilli());
-        String startTime = Long.toString(ZonedDateTime.now().minusMonths(countMonth + 1).toInstant().toEpochMilli());
+    private JSONObject getV1HistoryOrders(ZonedDateTime startDate, ZonedDateTime endDate) throws NoSuchAlgorithmException, InvalidKeyException {
         List<String> params = new ArrayList<>();
         params.add(String.format("api_key=%s", this.API_KEY));
-        params.add(String.format("endTime=%s", endTime));
-        params.add(String.format("startTime=%s", startTime));
+        params.add(String.format("endTime=%s", endDate.toInstant().toEpochMilli()));
+        params.add(String.format("startTime=%s", startDate.toInstant().toEpochMilli()));
         return this.getV1Response("/spot/v1/history-orders", params);
     }
 
     public List<JSONObject> getV1AllHistoryOrders() throws NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
         List<JSONObject> orders = new ArrayList<>();
         ZonedDateTime startDate = this.getMinTimestampZoneDate();
-        for (int i = 0; i < 12; i++) {
+        ZonedDateTime endDate = ZonedDateTime.now();
+        ZonedDateTime useStartDate = endDate.minusMonths(1);
+        if (useStartDate.toInstant().toEpochMilli() < startDate.toInstant().toEpochMilli()) {
+            useStartDate = startDate;
+        }
+        while (startDate.toInstant().toEpochMilli() < endDate.toInstant().toEpochMilli()) {
             Thread.sleep(500);
-            JSONObject tradeObject = this.getV1HistoryOrders(i);
+            JSONObject tradeObject = this.getV1HistoryOrders(useStartDate, endDate);
             orders.add(tradeObject);
+            endDate = endDate.minusMonths(1);
+            useStartDate = useStartDate.minusMonths(1);
+            if (useStartDate.toInstant().toEpochMilli() < startDate.toInstant().toEpochMilli()) {
+                useStartDate = startDate;
+            }
         }
         return orders;
     }
