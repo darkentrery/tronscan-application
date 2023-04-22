@@ -4,8 +4,8 @@ import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

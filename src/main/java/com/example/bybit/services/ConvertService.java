@@ -2,7 +2,7 @@ package com.example.bybit.services;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONObject;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;

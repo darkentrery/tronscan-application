@@ -1,6 +1,6 @@
 package com.example.bybit.models;
 
-import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.json.JSONException;
 
 import java.math.BigDecimal;
 import java.util.*;

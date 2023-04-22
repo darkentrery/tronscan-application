@@ -1,7 +1,7 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.DealsImportResult;
-import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.json.JSONException;
 
 
 public interface TronService {
