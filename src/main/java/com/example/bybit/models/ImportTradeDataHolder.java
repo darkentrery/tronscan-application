@@ -260,7 +260,7 @@ public class ImportTradeDataHolder {
     }
 
     public ImportTradeDataHolder(TronTransactionObject object) throws JSONException {
-        this.date = new Date(object.getInt("block_timestamp"));
+        this.date = new Date(object.getLong("block_timestamp"));
         try {
             this.quantity = new BigDecimal(object.getJSONObject("raw_data")
                     .getJSONArray("contract")
@@ -277,14 +277,56 @@ public class ImportTradeDataHolder {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        this.fee = new BigDecimal(object.getInt("net_usage") + object.getInt("energy_usage"));
+        Integer fee_sum = object.getInt("net_usage") + object.getInt("energy_usage") + object.getInt("energy_usage_total");
+        Integer energy_fee = object.getInt("energy_fee");
+        if (energy_fee != 0) {
+            fee_sum += energy_fee / 1000000;
+        }
+        this.fee = new BigDecimal(fee_sum);
 
     }
 
-    public ImportTradeDataHolder(TronTransactionTrc20Object object) throws JSONException {
-        this.date = new Date(object.getInt("block_timestamp"));
+    public ImportTradeDataHolder(TronTransaction6SizeObject object) throws JSONException {
+        this.date = new Date(object.getLong("block_timestamp"));
+        try {
+            this.quantity = new BigDecimal(object.getJSONObject("data")
+                    .getJSONObject("call_value")
+                    .getInt("_"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        this.currency = "TRX";
+        try {
+            this.tradeSystemId = object.getString("tx_id");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ImportTradeDataHolder(ImportTradeDataHolder object1, ImportTradeDataHolder object2) {
+        this.date = object1.date != null ? object1.date : object2.date;
+        this.quantity = object1.quantity != null ? object1.quantity : object2.quantity;
+        if (object1.quantity != null && object2.quantity != null) {
+            this.quantity = object1.quantity.max(object2.quantity);
+        }
+        this.currency = object1.currency != null ? object1.currency : object2.currency;
+        this.tradeSystemId = object1.tradeSystemId != null ? object1.tradeSystemId : object2.tradeSystemId;
+        this.fee = object1.fee != null ? object1.fee : object2.fee;
+        if (object1.fee != null && object2.fee != null) {
+            this.fee = object1.fee.max(object2.fee);
+        }
+        this.operation = object1.operation != null ? object1.operation : object2.operation;
+    }
+
+    public ImportTradeDataHolder(TronTransactionTrc20Object object, String address) throws JSONException {
+        this.date = new Date(object.getLong("block_timestamp"));
         this.quantity = new BigDecimal(object.getString("value"));
         this.currency = object.getJSONObject("token_info").getString("symbol");
         this.tradeSystemId = object.getString("transaction_id");
+        if (object.getString("from").equals(address)) {
+            this.operation = Operation.SHARE_OUT;
+        } else if (object.getString("to").equals(address)) {
+            this.operation = Operation.SHARE_IN;
+        }
     }
 }

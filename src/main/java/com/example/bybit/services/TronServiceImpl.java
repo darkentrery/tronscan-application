@@ -1,9 +1,6 @@
 package com.example.bybit.services;
 
-import com.example.bybit.models.DealsImportResult;
-import com.example.bybit.models.ImportTradeDataHolder;
-import com.example.bybit.models.TronTransactionObject;
-import com.example.bybit.models.TronTransactionTrc20Object;
+import com.example.bybit.models.*;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -169,12 +166,37 @@ public class TronServiceImpl implements TronService {
         for (JSONObject response : allTransactionsInfoByAddress) {
             JSONArray transactions = response.getJSONArray("data");
             for (int i = 0; i < transactions.length(); i++) {
-                TronTransactionObject transaction = new TronTransactionObject(transactions.getJSONObject(i));
-                ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction);
+                ImportTradeDataHolder tradeDataHolder;
+                System.out.println(transactions.getJSONObject(i).length());
+                if (transactions.getJSONObject(i).length() == 13) {
+                    TronTransactionObject transaction = new TronTransactionObject(transactions.getJSONObject(i));
+                    tradeDataHolder = new ImportTradeDataHolder(transaction);
+                } else {
+                    TronTransaction6SizeObject transaction = new TronTransaction6SizeObject(transactions.getJSONObject(i));
+                    tradeDataHolder = new ImportTradeDataHolder(transaction);
+                }
                 tradeDataHolders.add(tradeDataHolder);
             }
         }
-        return tradeDataHolders;
+        List<ImportTradeDataHolder> newTradeDataHolders = new ArrayList<>();
+        Map<String, List<ImportTradeDataHolder>> transactionsId = new HashMap<>();
+        tradeDataHolders.forEach(tradeDataHolder -> {
+            if (transactionsId.containsKey(tradeDataHolder.getTradeSystemId())) {
+                transactionsId.get(tradeDataHolder.getTradeSystemId()).add(tradeDataHolder);
+            } else {
+                List<ImportTradeDataHolder> array = new ArrayList<>();
+                array.add(tradeDataHolder);
+                transactionsId.put(tradeDataHolder.getTradeSystemId(), array);
+            }
+        });
+        transactionsId.forEach((id, holders) -> {
+            if (holders.size() > 1) {
+                newTradeDataHolders.add(new ImportTradeDataHolder(holders.get(0), holders.get(1)));
+            } else {
+                newTradeDataHolders.add(holders.get(0));
+            }
+        });
+        return newTradeDataHolders;
     }
 
     private List<ImportTradeDataHolder> getTrc20TradeDataHolders() throws JSONException, InterruptedException {
@@ -184,7 +206,7 @@ public class TronServiceImpl implements TronService {
             JSONArray transactions = response.getJSONArray("data");
             for (int i = 0; i < transactions.length(); i++) {
                 TronTransactionTrc20Object transaction = new TronTransactionTrc20Object(transactions.getJSONObject(i));
-                ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction);
+                ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction, this.address);
                 tradeDataHolders.add(tradeDataHolder);
             }
         }
@@ -217,6 +239,9 @@ public class TronServiceImpl implements TronService {
             }
         }
         result.setTransactions(tradeDataHolders);
+        for (ImportTradeDataHolder t : tradeDataHolders) {
+            System.out.println(t.getTradeSystemId());
+        }
 
         return result;
     }

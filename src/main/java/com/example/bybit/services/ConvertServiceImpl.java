@@ -31,7 +31,8 @@ public class ConvertServiceImpl implements ConvertService{
         return null;
     }
 
-    private String bytesToHex(byte[] hash) {
+    @Override
+    public String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder();
         for (byte b : hash) {
             String hex = Integer.toHexString(0xff & b);
