@@ -3,7 +3,6 @@ package com.example.bybit.controllers;
 import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
-import com.example.bybit.services.ConvertService;
 import com.example.bybit.services.TronService;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ public class MainController {
     @Autowired
     private TronService tronService;
 
-    @Autowired
-    private ConvertService convertService;
-
     @PostMapping("/credentials")
     public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String apiKey = credentials.getAccessKey();
@@ -37,10 +33,15 @@ public class MainController {
     }
 
     @PostMapping("/credentials/tron")
-    public ResponseEntity<DealsImportResult> getTronData(@RequestBody Credentials credentials) throws JSONException, InterruptedException {
+    public ResponseEntity getTronData(@RequestBody Credentials credentials) throws JSONException, InterruptedException {
         String address = credentials.getAddress();
         String startDate = credentials.getStartDate();
-        DealsImportResult response = tronService.getTronDetailImportResult(address, startDate);
-        return ResponseEntity.ok(response);
+        try {
+            DealsImportResult response = tronService.getTronDetailImportResult(address, startDate);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok("");
+        }
     }
 }

@@ -143,30 +143,26 @@ public class TronServiceImpl implements TronService {
 
     private Map<String, BigDecimal> getAccountAssets() throws JSONException, InterruptedException {
         Map<String, BigDecimal> assets = new HashMap<>();
-        try {
-            JSONObject account = this.getAccountInfo();
-            JSONArray assetsV2 = account.getJSONArray("data").getJSONObject(0).getJSONArray("assetV2");
-            JSONArray assetsTrc20 = account.getJSONArray("data").getJSONObject(0).getJSONArray("trc20");
-            this.setHexAddress(account.getJSONArray("data").getJSONObject(0).getString("address"));
-            for (int i = 0; i < assetsV2.length(); i++) {
-                Thread.sleep(200);
-                JSONObject assetV2 = assetsV2.getJSONObject(i);
-                JSONObject assetInfo = this.getAssetTrc10Info(assetV2.getString("key"));
-                String assetName = assetInfo.getJSONArray("data").getJSONObject(0).getString("name");
-                assets.put(assetName, new BigDecimal(assetV2.getInt("value")));
-            }
-
-            for (int i = 0; i < assetsTrc20.length(); i++) {
-                Thread.sleep(200);
-                JSONObject assetTrc20 = assetsTrc20.getJSONObject(i);
-                String key = assetTrc20.names().getString(0);
-                JSONObject assetInfo = this.postTronResponse("/wallet/getaccount", key);
-                String assetName = assetInfo.getString("account_name");
-                assets.put(assetName, new BigDecimal(assetTrc20.getString(key)));
-            }
-        } catch (Exception e) {
+        JSONObject account = this.getAccountInfo();
+        JSONArray assetsV2 = account.getJSONArray("data").getJSONObject(0).getJSONArray("assetV2");
+        JSONArray assetsTrc20 = account.getJSONArray("data").getJSONObject(0).getJSONArray("trc20");
+        this.setHexAddress(account.getJSONArray("data").getJSONObject(0).getString("address"));
+        for (int i = 0; i < assetsV2.length(); i++) {
+            Thread.sleep(200);
+            JSONObject assetV2 = assetsV2.getJSONObject(i);
+            JSONObject assetInfo = this.getAssetTrc10Info(assetV2.getString("key"));
+            String assetName = assetInfo.getJSONArray("data").getJSONObject(0).getString("name");
+            assets.put(assetName, new BigDecimal(assetV2.getInt("value")));
         }
 
+        for (int i = 0; i < assetsTrc20.length(); i++) {
+            Thread.sleep(200);
+            JSONObject assetTrc20 = assetsTrc20.getJSONObject(i);
+            String key = assetTrc20.names().getString(0);
+            JSONObject assetInfo = this.postTronResponse("/wallet/getaccount", key);
+            String assetName = assetInfo.getString("account_name");
+            assets.put(assetName, new BigDecimal(assetTrc20.getString(key)));
+        }
         return assets;
     }
 
