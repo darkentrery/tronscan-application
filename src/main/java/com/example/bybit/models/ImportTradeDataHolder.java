@@ -259,15 +259,17 @@ public class ImportTradeDataHolder {
         this.setOperation(operation);
     }
 
-    public ImportTradeDataHolder(TronTransactionObject object) throws JSONException {
+    public ImportTradeDataHolder(TronTransactionObject object, String address) throws JSONException {
         this.date = new Date(object.getLong("block_timestamp"));
         try {
-            this.quantity = new BigDecimal(object.getJSONObject("raw_data")
+            Integer quantity = object
+                    .getJSONObject("raw_data")
                     .getJSONArray("contract")
                     .getJSONObject(0)
                     .getJSONObject("parameter")
                     .getJSONObject("value")
-                    .getInt("amount"));
+                    .getInt("amount");
+            this.quantity = new BigDecimal(quantity / 1000000);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -283,15 +285,32 @@ public class ImportTradeDataHolder {
             fee_sum += energy_fee / 1000000;
         }
         this.fee = new BigDecimal(fee_sum);
-
+        try {
+            var contractData = object.getJSONObject("raw_data")
+                    .getJSONArray("contract")
+                    .getJSONObject(0)
+                    .getJSONObject("parameter")
+                    .getJSONObject("value");
+            if (contractData.getString("owner_address").equals(address)) {
+                this.operation = Operation.SHARE_OUT;
+            } else if (contractData.has("contract_address") && contractData.getString("contract_address").equals(address)) {
+                this.operation = Operation.SHARE_IN;
+            } else if (contractData.has("to_address") && contractData.getString("to_address").equals(address)) {
+                this.operation = Operation.SHARE_IN;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public ImportTradeDataHolder(TronTransaction6SizeObject object) throws JSONException {
         this.date = new Date(object.getLong("block_timestamp"));
         try {
-            this.quantity = new BigDecimal(object.getJSONObject("data")
+            Integer quantity = object
+                    .getJSONObject("data")
                     .getJSONObject("call_value")
-                    .getInt("_"));
+                    .getInt("_");
+            this.quantity = new BigDecimal(quantity / 1000000);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -321,6 +340,7 @@ public class ImportTradeDataHolder {
     public ImportTradeDataHolder(TronTransactionTrc20Object object, String address) throws JSONException {
         this.date = new Date(object.getLong("block_timestamp"));
         this.quantity = new BigDecimal(object.getString("value"));
+        this.quantity = this.quantity.divide(new BigDecimal(1000000));
         this.currency = object.getJSONObject("token_info").getString("symbol");
         this.tradeSystemId = object.getString("transaction_id");
         if (object.getString("from").equals(address)) {

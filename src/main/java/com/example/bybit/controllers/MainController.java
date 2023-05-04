@@ -3,6 +3,7 @@ package com.example.bybit.controllers;
 import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
+import com.example.bybit.services.ConvertService;
 import com.example.bybit.services.TronService;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+
 
 @RestController
 @RequestMapping("/input")
@@ -21,6 +23,9 @@ public class MainController {
 
     @Autowired
     private TronService tronService;
+
+    @Autowired
+    private ConvertService convertService;
 
     @PostMapping("/credentials")
     public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {

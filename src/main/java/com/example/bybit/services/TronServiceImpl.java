@@ -1,6 +1,8 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import lombok.Getter;
+import lombok.Setter;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -16,6 +18,8 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Getter
+@Setter
 @Service
 public class TronServiceImpl implements TronService {
     @Autowired
@@ -24,18 +28,19 @@ public class TronServiceImpl implements TronService {
     private String address;
     private final String URL = "https://api.trongrid.io";
     private String minTimestamp = "0";
+    private String hexAddress;
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getMinTimestamp() {
-        return minTimestamp;
-    }
+//    public String getAddress() {
+//        return address;
+//    }
+//
+//    public void setAddress(String address) {
+//        this.address = address;
+//    }
+//
+//    public String getMinTimestamp() {
+//        return minTimestamp;
+//    }
 
     public void setMinTimestamp(String minTimestamp) {
         try {
@@ -138,25 +143,30 @@ public class TronServiceImpl implements TronService {
 
     private Map<String, BigDecimal> getAccountAssets() throws JSONException, InterruptedException {
         Map<String, BigDecimal> assets = new HashMap<>();
-        JSONObject account = this.getAccountInfo();
-        JSONArray assetsV2 = account.getJSONArray("data").getJSONObject(0).getJSONArray("assetV2");
-        JSONArray assetsTrc20 = account.getJSONArray("data").getJSONObject(0).getJSONArray("trc20");
-        for (int i = 0; i < assetsV2.length(); i++) {
-            Thread.sleep(200);
-            JSONObject assetV2 = assetsV2.getJSONObject(i);
-            JSONObject assetInfo = this.getAssetTrc10Info(assetV2.getString("key"));
-            String assetName = assetInfo.getJSONArray("data").getJSONObject(0).getString("name");
-            assets.put(assetName, new BigDecimal(assetV2.getInt("value")));
+        try {
+            JSONObject account = this.getAccountInfo();
+            JSONArray assetsV2 = account.getJSONArray("data").getJSONObject(0).getJSONArray("assetV2");
+            JSONArray assetsTrc20 = account.getJSONArray("data").getJSONObject(0).getJSONArray("trc20");
+            this.setHexAddress(account.getJSONArray("data").getJSONObject(0).getString("address"));
+            for (int i = 0; i < assetsV2.length(); i++) {
+                Thread.sleep(200);
+                JSONObject assetV2 = assetsV2.getJSONObject(i);
+                JSONObject assetInfo = this.getAssetTrc10Info(assetV2.getString("key"));
+                String assetName = assetInfo.getJSONArray("data").getJSONObject(0).getString("name");
+                assets.put(assetName, new BigDecimal(assetV2.getInt("value")));
+            }
+
+            for (int i = 0; i < assetsTrc20.length(); i++) {
+                Thread.sleep(200);
+                JSONObject assetTrc20 = assetsTrc20.getJSONObject(i);
+                String key = assetTrc20.names().getString(0);
+                JSONObject assetInfo = this.postTronResponse("/wallet/getaccount", key);
+                String assetName = assetInfo.getString("account_name");
+                assets.put(assetName, new BigDecimal(assetTrc20.getString(key)));
+            }
+        } catch (Exception e) {
         }
 
-        for (int i = 0; i < assetsTrc20.length(); i++) {
-            Thread.sleep(200);
-            JSONObject assetTrc20 = assetsTrc20.getJSONObject(i);
-            String key = assetTrc20.names().getString(0);
-            JSONObject assetInfo = this.postTronResponse("/wallet/getaccount", key);
-            String assetName = assetInfo.getString("account_name");
-            assets.put(assetName, new BigDecimal(assetTrc20.getString(key)));
-        }
         return assets;
     }
 
@@ -167,10 +177,9 @@ public class TronServiceImpl implements TronService {
             JSONArray transactions = response.getJSONArray("data");
             for (int i = 0; i < transactions.length(); i++) {
                 ImportTradeDataHolder tradeDataHolder;
-                System.out.println(transactions.getJSONObject(i).length());
                 if (transactions.getJSONObject(i).length() == 13) {
                     TronTransactionObject transaction = new TronTransactionObject(transactions.getJSONObject(i));
-                    tradeDataHolder = new ImportTradeDataHolder(transaction);
+                    tradeDataHolder = new ImportTradeDataHolder(transaction, this.hexAddress);
                 } else {
                     TronTransaction6SizeObject transaction = new TronTransaction6SizeObject(transactions.getJSONObject(i));
                     tradeDataHolder = new ImportTradeDataHolder(transaction);
@@ -229,6 +238,7 @@ public class TronServiceImpl implements TronService {
                 if (tradeDataHolder.getTradeSystemId().equals(trc20TradeDataHolder.getTradeSystemId())) {
                     tradeDataHolder.setCurrency(trc20TradeDataHolder.getCurrency());
                     tradeDataHolder.setQuantity(trc20TradeDataHolder.getQuantity());
+                    tradeDataHolder.setOperation(trc20TradeDataHolder.getOperation());
                     break;
                 }
             }
@@ -239,9 +249,6 @@ public class TronServiceImpl implements TronService {
             }
         }
         result.setTransactions(tradeDataHolders);
-        for (ImportTradeDataHolder t : tradeDataHolders) {
-            System.out.println(t.getTradeSystemId());
-        }
 
         return result;
     }
