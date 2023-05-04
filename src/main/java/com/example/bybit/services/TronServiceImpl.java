@@ -30,18 +30,6 @@ public class TronServiceImpl implements TronService {
     private String minTimestamp = "0";
     private String hexAddress;
 
-//    public String getAddress() {
-//        return address;
-//    }
-//
-//    public void setAddress(String address) {
-//        this.address = address;
-//    }
-//
-//    public String getMinTimestamp() {
-//        return minTimestamp;
-//    }
-
     public void setMinTimestamp(String minTimestamp) {
         try {
             ZonedDateTime date = LocalDate.parse(minTimestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay(ZoneId.of("UTC"));
