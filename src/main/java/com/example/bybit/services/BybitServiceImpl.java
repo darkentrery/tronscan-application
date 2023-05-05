@@ -1,9 +1,12 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.InvalidKeyException;
@@ -16,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Setter
+@Getter
 @Service
 public class BybitServiceImpl implements BybitService{
 
@@ -26,30 +31,13 @@ public class BybitServiceImpl implements BybitService{
     private BybitV5Service bybitV5Service;
 
     private final String RECV_WINDOW = "5000";
-    private final String URL = "https://api.bybit.com";
+
+    @Value("${url.bybit}")
+    String URL;
+
     private String API_KEY;
     private String API_SECRET;
     private String minTimestamp = "0";
-
-    public String getAPI_KEY() {
-        return API_KEY;
-    }
-
-    public void setAPI_KEY(String API_KEY) {
-        this.API_KEY = API_KEY;
-    }
-
-    public String getAPI_SECRET() {
-        return API_SECRET;
-    }
-
-    public void setAPI_SECRET(String API_SECRET) {
-        this.API_SECRET = API_SECRET;
-    }
-
-    public String getMinTimestamp() {
-        return minTimestamp;
-    }
 
     public void setMinTimestamp(String minTimestamp) {
         try {
@@ -57,7 +45,7 @@ public class BybitServiceImpl implements BybitService{
             long epochMilli = date.toInstant().toEpochMilli();
             this.minTimestamp = Long.toString(epochMilli);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.minTimestamp = "0";
         }
     }
 
@@ -81,14 +69,13 @@ public class BybitServiceImpl implements BybitService{
             bybitV1Service.setParameters(this.getParameters());
             bybitV5Service.setParameters(this.getParameters());
 
-
             JSONObject v1Balance = bybitV1Service.getV1WalletBalance();
             List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
             List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
             for (ImportTradeDataHolder trade : trades) {
                 for (ImportTradeDataHolder order : orders) {
                     if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
-                        trade.setOperation(order.getOperation());
+                        trade.setOperation(String.valueOf(order.getOperation()));
                     }
                 }
             }

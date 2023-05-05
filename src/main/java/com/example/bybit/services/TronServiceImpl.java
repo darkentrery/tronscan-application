@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,7 +27,10 @@ public class TronServiceImpl implements TronService {
     private ConvertService convertService;
 
     private String address;
-    private final String URL = "https://api.trongrid.io";
+
+    @Value("${url.tron}")
+    String URL;
+
     private String minTimestamp = "0";
     private String hexAddress;
 
@@ -36,7 +40,7 @@ public class TronServiceImpl implements TronService {
             long epochMilli = date.toInstant().toEpochMilli();
             this.minTimestamp = Long.toString(epochMilli);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.minTimestamp = "0";
         }
     }
 
@@ -222,7 +226,7 @@ public class TronServiceImpl implements TronService {
                 if (tradeDataHolder.getTradeSystemId().equals(trc20TradeDataHolder.getTradeSystemId())) {
                     tradeDataHolder.setCurrency(trc20TradeDataHolder.getCurrency());
                     tradeDataHolder.setQuantity(trc20TradeDataHolder.getQuantity());
-                    tradeDataHolder.setOperation(trc20TradeDataHolder.getOperation());
+                    tradeDataHolder.setOperation(String.valueOf(trc20TradeDataHolder.getOperation()));
                     break;
                 }
             }
