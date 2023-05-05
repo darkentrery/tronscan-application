@@ -112,8 +112,12 @@ public class TronServiceImpl implements TronService {
             Thread.sleep(400);
             String nextPage = (String) response.getJSONObject("meta").get("fingerprint");
             response = this.getTransactionsInfoByAddress(nextPage);
+            if (response.has("statusCode") && response.getInt("statusCode") == 400) {
+                break;
+            }
             list.add(response);
         }
+
         return list;
     }
 
@@ -165,7 +169,7 @@ public class TronServiceImpl implements TronService {
             JSONArray transactions = response.getJSONArray("data");
             for (int i = 0; i < transactions.length(); i++) {
                 ImportTradeDataHolder tradeDataHolder;
-                if (transactions.getJSONObject(i).length() == 13) {
+                if (transactions.getJSONObject(i).length() == 13 || transactions.getJSONObject(i).length() == 14) {
                     TronTransactionObject transaction = new TronTransactionObject(transactions.getJSONObject(i));
                     tradeDataHolder = new ImportTradeDataHolder(transaction, this.hexAddress);
                 } else {
@@ -223,7 +227,7 @@ public class TronServiceImpl implements TronService {
         for (ImportTradeDataHolder tradeDataHolder : tradeDataHolders) {
             numbers.add(tradeDataHolder.getTradeSystemId());
             for (ImportTradeDataHolder trc20TradeDataHolder : trc20TradeDataHolders) {
-                if (tradeDataHolder.getTradeSystemId().equals(trc20TradeDataHolder.getTradeSystemId())) {
+                if (tradeDataHolder.getTradeSystemId() != null && tradeDataHolder.getTradeSystemId().equals(trc20TradeDataHolder.getTradeSystemId())) {
                     tradeDataHolder.setCurrency(trc20TradeDataHolder.getCurrency());
                     tradeDataHolder.setQuantity(trc20TradeDataHolder.getQuantity());
                     tradeDataHolder.setOperation(String.valueOf(trc20TradeDataHolder.getOperation()));

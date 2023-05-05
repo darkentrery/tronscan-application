@@ -68,6 +68,7 @@ public class BybitServiceImpl implements BybitService{
             this.setAPI_SECRET(API_SECRET);
             bybitV1Service.setParameters(this.getParameters());
             bybitV5Service.setParameters(this.getParameters());
+            JSONObject any = bybitV5Service.getAny();
 
             JSONObject v1Balance = bybitV1Service.getV1WalletBalance();
             List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();

@@ -13,4 +13,5 @@ public interface BybitV5Service {
     List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
     JSONObject getWalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
     void setParameters(Map<String, String> parameters);
+    JSONObject getAny() throws NoSuchAlgorithmException, InvalidKeyException;
 }

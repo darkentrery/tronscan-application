@@ -2,8 +2,10 @@ package com.example.bybit.services;
 
 import com.example.bybit.models.ImportTradeDataHolder;
 import com.example.bybit.models.V5TradeObject;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,6 +44,24 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return this.getV5Response("", "/v5/account/wallet-balance", queryString);
     }
 
+    @Override
+    public JSONObject getAny() throws NoSuchAlgorithmException, InvalidKeyException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
+        String url = String.format("%s%s", this.URL, "/s1/byfi/query-orders");
+        MediaType mediaType = MediaType.parse("application/json");
+        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}");
+        RequestBody body = RequestBody.create(mediaType, bodyContent);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("accept", "application/json")
+                .build();
+        return convertService.getJsonObject(client, request);
+//        String queryString = "coin=0";
+//        return this.getV5Response("", "/s1/byfi/query-orders", queryString);
+    }
+
     private List<JSONObject> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
         String cursor = "";
         List<JSONObject> responses = new ArrayList<>();
@@ -59,7 +79,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
     }
 
     private JSONObject getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
-        String queryString = String.format("accountType=UNIFIED&limit=5&startTime=%s", this.minTimestamp);
+        String queryString = String.format("accountType=UNIFIED&limit=50&startTime=%s", this.minTimestamp);
         JSONObject transactions = this.getV5Response(cursor, "/v5/account/transaction-log", queryString);
         if (transactions.getInt("retCode") == 10016) {
             Thread.sleep(3000);

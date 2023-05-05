@@ -82,7 +82,7 @@ public class BybitV1ServiceImpl extends BybitAbstractService implements BybitV1S
                     }
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
                 System.out.println(order);
             }
         }
