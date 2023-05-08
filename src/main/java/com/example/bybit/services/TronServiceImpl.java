@@ -240,6 +240,7 @@ public class TronServiceImpl implements TronService {
                 tradeDataHolders.add(trc20TradeDataHolder);
             }
         }
+        Collections.sort(tradeDataHolders, Comparator.comparing(ImportTradeDataHolder::getDate).reversed());
         result.setTransactions(tradeDataHolders);
 
         return result;
