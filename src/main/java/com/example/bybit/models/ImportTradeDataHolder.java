@@ -3,11 +3,13 @@ package com.example.bybit.models;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 
 import java.math.BigDecimal;
 import java.util.*;
 
+@Slf4j
 @Setter
 @Getter
 @NoArgsConstructor
@@ -137,13 +139,17 @@ public class ImportTradeDataHolder {
                     .getInt("amount");
             this.quantity = new BigDecimal(quantity / 1000000);
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.error(String.valueOf(object.getJSONObject("raw_data")
+                    .getJSONArray("contract")
+                    .getJSONObject(0)
+                    .getJSONObject("parameter")
+            ));
         }
         this.currency = "TRX";
         try {
             this.tradeSystemId = object.getString("txID");
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
         Integer fee_sum = object.getInt("net_usage") + object.getInt("energy_usage") + object.getInt("energy_usage_total");
         Integer energy_fee = object.getInt("energy_fee");
@@ -184,7 +190,7 @@ public class ImportTradeDataHolder {
         try {
             this.tradeSystemId = object.getString("tx_id");
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
     }
 

@@ -1,5 +1,8 @@
 package com.example.bybit.models;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Setter
+@Getter
+@NoArgsConstructor
 public class DealsImportResult {
     /** Список ошибок при обработке транзакций */
     private List<DealImportError> errors = new ArrayList<>();
@@ -31,14 +37,6 @@ public class DealsImportResult {
 
     /** Дополнительные инструкции для обработки транзаций */
     private ParseInstruction parseInstruction;
-
-    public DealsImportResult() {
-
-    }
-
-    public Map<String, BigDecimal> getCurrentMoneyRemainders() {
-        return currentMoneyRemainders;
-    }
 
     public void setCurrentMoneyRemainders(Map<String, BigDecimal> currentMoneyRemainders) {
         this.currentMoneyRemainders = currentMoneyRemainders;
@@ -75,58 +73,10 @@ public class DealsImportResult {
         }
     }
 
-    public String getGeneralError() {
-        return generalError;
-    }
-
-    public void setGeneralError(String generalError) {
-        this.generalError = generalError;
-    }
-
-    public boolean isReportValid() {
-        return reportValid;
-    }
-
-    public void setReportValid(boolean reportValid) {
-        this.reportValid = reportValid;
-    }
-
-    public List<DealImportError> getErrors() {
-        return errors;
-    }
-
-    public void setErrors(List<DealImportError> errors) {
-        this.errors = errors;
-    }
-
-    public List<ImportTradeDataHolder> getTransactions() {
-        return transactions;
-    }
-
-    public List<AssetModel> getAssetMetaData() {
-        return assetMetaData;
-    }
-
-    public void setAssetMetaData(List<AssetModel> assetMetaData) {
-        this.assetMetaData = assetMetaData;
-    }
-
-    public void setTransactions(List<ImportTradeDataHolder> transactions) {
-        this.transactions = transactions;
-    }
-
     public void extendTransactions(List<ImportTradeDataHolder> transactions) {
         for (ImportTradeDataHolder transaction : transactions) {
             this.transactions.add(transaction);
         }
-    }
-
-    public ParseInstruction getParseInstruction() {
-        return parseInstruction;
-    }
-
-    public void setParseInstruction(ParseInstruction parseInstruction) {
-        this.parseInstruction = parseInstruction;
     }
 
     public DealsImportResult(Map<String, BigDecimal> currentMoneyRemainders, String generalError, boolean reportValid) {

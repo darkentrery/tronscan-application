@@ -4,9 +4,8 @@ import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/input")
 public class MainController {
@@ -24,7 +23,6 @@ public class MainController {
 
     @Autowired
     private TronService tronService;
-    private static Logger logger = LoggerFactory.getLogger(MainController.class);
 
     @PostMapping("/credentials")
     public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
@@ -43,7 +41,7 @@ public class MainController {
             DealsImportResult response = tronService.getTronDetailImportResult(address, startDate);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            log.error(e.getMessage());
             return ResponseEntity.ok("");
         }
     }
