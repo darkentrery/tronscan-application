@@ -1,6 +1,7 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import okhttp3.MediaType;
@@ -12,12 +13,17 @@ import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -42,6 +48,25 @@ public class TronServiceImpl implements TronService {
         } catch (Exception e) {
             this.minTimestamp = "0";
         }
+    }
+
+    private TronResponseObject getNewTronResponse(String endpoint) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = String.format("%s%s", this.URL, endpoint);
+
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        String stringToParse = responseEntity.getBody();
+        JSONObject json = new JSONObject(stringToParse);
+        TronResponseObject readValue = mapper.readValue(responseEntity.getBody(), TronResponseObject.class);
+//        ObjectMapper mapper = new ObjectMapper();
+//        TronResponseObject obs = Arrays.stream(objects)
+//                .map(object -> mapper.convertValue(object, TronResponseObject.class))
+//                .map(TronResponseObject::getData)
+//                .collect(Collectors.toList());
+
+        TronResponseObject tronResponseObject = restTemplate.getForObject(url, TronResponseObject.class);
+        return tronResponseObject;
     }
 
     public JSONObject getTronResponse(String endpoint) {
@@ -215,10 +240,12 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, InterruptedException {
+    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, InterruptedException, IOException {
         DealsImportResult result = new DealsImportResult();
         this.setAddress(address);
         this.setMinTimestamp(startDate);
+        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s", this.address, this.minTimestamp);
+        TronResponseObject tronResponseObject = this.getNewTronResponse(endpoint);
         Map<String, BigDecimal> assets = this.getAccountAssets();
         result.setCurrentMoneyRemainders(assets);
         List<ImportTradeDataHolder> tradeDataHolders = this.getTradeDataHolders();

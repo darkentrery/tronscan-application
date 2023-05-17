@@ -46,20 +46,20 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
 
     @Override
     public JSONObject getAny() throws NoSuchAlgorithmException, InvalidKeyException {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        String url = String.format("%s%s", this.URL, "/s1/byfi/query-orders");
-        MediaType mediaType = MediaType.parse("application/json");
-        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}");
-        RequestBody body = RequestBody.create(mediaType, bodyContent);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("accept", "application/json")
-                .build();
-        return convertService.getJsonObject(client, request);
-//        String queryString = "coin=0";
-//        return this.getV5Response("", "/s1/byfi/query-orders", queryString);
+//        OkHttpClient client = new OkHttpClient().newBuilder().build();
+//        String url = String.format("%s%s", this.URL, "/s1/byfi/query-orders");
+//        MediaType mediaType = MediaType.parse("application/json");
+//        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}");
+//        RequestBody body = RequestBody.create(mediaType, bodyContent);
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .post(body)
+//                .addHeader("Content-Type", "application/json")
+//                .addHeader("accept", "application/json")
+//                .build();
+//        return convertService.getJsonObject(client, request);
+        String queryString = "";
+        return this.getV5Response("", "/asset/v3/private/transfer/sub-member-transfer/list/query", queryString);
     }
 
     private List<JSONObject> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
