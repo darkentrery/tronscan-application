@@ -1,4 +1,4 @@
-package com.example.bybit.models;
+package com.example.bybit.models.troneResponses;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.AllArgsConstructor;
@@ -6,18 +6,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TronResponseObject {
-    private ArrayList<TroneResponseTransactionObject> data;
-    private Boolean success;
-    private TronResponseMetaObject meta;
+public class TronAccountInfoObject {
+    private ArrayList<AssetV2Object> assetV2;
+    private ArrayList<AssetTrc20Object> trc20;
+    private String address;
     private Map<String, Object> properties = new HashMap<>();
 
     @JsonAnySetter
@@ -25,4 +27,3 @@ public class TronResponseObject {
         properties.put(fieldName, fieldValue);
     }
 }
-

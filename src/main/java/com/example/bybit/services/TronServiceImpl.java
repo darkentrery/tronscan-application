@@ -1,29 +1,28 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import com.example.bybit.models.troneResponses.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -50,115 +49,140 @@ public class TronServiceImpl implements TronService {
         }
     }
 
-    private TronResponseObject getNewTronResponse(String endpoint) throws IOException {
+    private String getTronResponse(String endpoint) {
         RestTemplate restTemplate = new RestTemplate();
         String url = String.format("%s%s", this.URL, endpoint);
-
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+        return responseEntity.getBody();
+    }
+
+    private Object getResponseObject(String response, Class objectClass) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        String stringToParse = responseEntity.getBody();
-        JSONObject json = new JSONObject(stringToParse);
-        TronResponseObject readValue = mapper.readValue(responseEntity.getBody(), TronResponseObject.class);
-        List<ImportTradeDataHolder> transactions = new ArrayList<>();
-        for (TroneResponseTransactionObject troneResponseTransactionObject : readValue.getData()) {
-            transactions.add(troneResponseTransactionObject.toImportTradeDataHolder(this.address));
-        }
-//        ObjectMapper mapper = new ObjectMapper();
-//        TronResponseObject obs = Arrays.stream(objects)
-//                .map(object -> mapper.convertValue(object, TronResponseObject.class))
-//                .map(TronResponseObject::getData)
-//                .collect(Collectors.toList());
-
-        TronResponseObject tronResponseObject = restTemplate.getForObject(url, TronResponseObject.class);
-        return tronResponseObject;
+//        JSONObject json = new JSONObject(response);
+        Object readValue = mapper.readValue(response, objectClass);
+        return readValue;
     }
 
-    public JSONObject getTronResponse(String endpoint) {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
+//    public JSONObject getTronResponse(String endpoint) {
+//        OkHttpClient client = new OkHttpClient().newBuilder().build();
+//        String url = String.format("%s%s", this.URL, endpoint);
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .get()
+//                .addHeader("Content-Type", "application/json")
+//                .build();
+//        return convertService.getJsonObject(client, request);
+//    }
+
+//    public JSONObject postTronResponse(String endpoint, String address) {
+//        OkHttpClient client = new OkHttpClient().newBuilder().build();
+//        String url = String.format("%s%s", this.URL, endpoint);
+//        MediaType mediaType = MediaType.parse("application/json");
+//        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}", address);
+//        RequestBody body = RequestBody.create(mediaType, bodyContent);
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .post(body)
+//                .addHeader("Content-Type", "application/json")
+//                .addHeader("accept", "application/json")
+//                .build();
+//        return convertService.getJsonObject(client, request);
+//    }
+
+    public String postTronResponse(String endpoint, String address) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject personJsonObject = new JSONObject();
+        personJsonObject.put("address", address);
+        personJsonObject.put("visible", true);
+        HttpEntity<String> request = new HttpEntity<String>(personJsonObject.toString(), headers);
         String url = String.format("%s%s", this.URL, endpoint);
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("Content-Type", "application/json")
-                .build();
-        return convertService.getJsonObject(client, request);
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, request, String.class);
+        return responseEntity.getBody();
     }
 
-    public JSONObject postTronResponse(String endpoint, String address) {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
-        String url = String.format("%s%s", this.URL, endpoint);
-        MediaType mediaType = MediaType.parse("application/json");
-        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}", address);
-        RequestBody body = RequestBody.create(mediaType, bodyContent);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("accept", "application/json")
-                .build();
-        return convertService.getJsonObject(client, request);
-    }
-
-    private JSONObject getTransactionsInfoByAddress() {
+    private TronResponseObject getTransactionsInfoByAddress() throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s", this.address, this.minTimestamp);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private JSONObject getTransactionsInfoByAddress(String fingerprint) {
+    private TronResponseObject getTransactionsInfoByAddress(String fingerprint) throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s&fingerprint=%s", this.address, this.minTimestamp, fingerprint);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private JSONObject getAccountInfo() {
+    private TronResponseAccountObject getAccountInfo() throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s", this.address);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronResponseAccountObject) this.getResponseObject(responseString, TronResponseAccountObject.class);
     }
 
-    private JSONObject getAssetTrc10Info(String identifier) {
+    private TronAssetTrc10ResponseObject getAssetTrc10Info(String identifier) throws JsonProcessingException {
         String endpoint = String.format("/v1/assets/%s", identifier);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronAssetTrc10ResponseObject) this.getResponseObject(responseString, TronAssetTrc10ResponseObject.class);
     }
 
-    private JSONObject getAccount() {
-        return this.postTronResponse("/wallet/getaccount", this.address);
+    private TronAssetTrc20ResponseObject getAssetTrc20Info(String address) throws JsonProcessingException {
+        String responseString = this.postTronResponse("/wallet/getaccount", address);
+        return (TronAssetTrc20ResponseObject) this.getResponseObject(responseString, TronAssetTrc20ResponseObject.class);
     }
 
-    private JSONObject getTrc20TransactionsInfoByAddress() {
+//    private JSONObject getAccount() {
+//        return this.postTronResponse("/wallet/getaccount", this.address);
+//    }
+
+    private TronResponseObject getTrc20TransactionsInfoByAddress() throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&min_timestamp=%s", this.address, this.minTimestamp);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private JSONObject getTrc20TransactionsInfoByAddress(String fingerprint) {
+    private TronResponseObject getTrc20TransactionsInfoByAddress(String fingerprint) throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&min_timestamp=%s&fingerprint=%s", this.address, this.minTimestamp, fingerprint);
-        return this.getTronResponse(endpoint);
+        String responseString = this.getTronResponse(endpoint);
+        return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private List<JSONObject> getAllTransactionsInfoByAddress() throws InterruptedException, JSONException {
-        List<JSONObject> list = new ArrayList<>();
-        JSONObject response = this.getTransactionsInfoByAddress();
+    private List<TronResponseObject> getAllTransactionsInfoByAddress() throws InterruptedException, JSONException, JsonProcessingException {
+        List<TronResponseObject> list = new ArrayList<>();
+        TronResponseObject response = this.getTransactionsInfoByAddress();
         list.add(response);
-        while (response.getJSONObject("meta").has("fingerprint")) {
+        while (response.getMeta().getFingerprint() != null) {
             Thread.sleep(400);
-            String nextPage = (String) response.getJSONObject("meta").get("fingerprint");
+            String nextPage = response.getMeta().getFingerprint();
             response = this.getTransactionsInfoByAddress(nextPage);
-            if (response.has("statusCode") && response.getInt("statusCode") == 400) {
+            if (!response.getSuccess()) {
                 break;
             }
             list.add(response);
         }
 
+//        while (response.getJSONObject("meta").has("fingerprint")) {
+//            Thread.sleep(400);
+//            String nextPage = (String) response.getJSONObject("meta").get("fingerprint");
+//            response = this.getTransactionsInfoByAddress(nextPage);
+//            if (response.has("statusCode") && response.getInt("statusCode") == 400) {
+//                break;
+//            }
+//            list.add(response);
+//        }
+
         return list;
     }
 
-    private List<JSONObject> getTrc20AllTransactionsInfoByAddress() throws InterruptedException, JSONException {
-        List<JSONObject> list = new ArrayList<>();
-        JSONObject response = this.getTrc20TransactionsInfoByAddress();
+    private List<TronResponseObject> getTrc20AllTransactionsInfoByAddress() throws InterruptedException, JSONException, JsonProcessingException {
+        List<TronResponseObject> list = new ArrayList<>();
+        TronResponseObject response = this.getTrc20TransactionsInfoByAddress();
         list.add(response);
-        while (response.getJSONObject("meta").has("fingerprint")) {
+        while (response.getMeta().getFingerprint() != null) {
             Thread.sleep(500);
-            String nextPage = (String) response.getJSONObject("meta").get("fingerprint");
+            String nextPage = response.getMeta().getFingerprint();
             response = this.getTrc20TransactionsInfoByAddress(nextPage);
-            if (response.has("statusCode") && response.getInt("statusCode") == 400) {
+            if (!response.getSuccess()) {
                 break;
             }
             list.add(response);
@@ -166,46 +190,35 @@ public class TronServiceImpl implements TronService {
         return list;
     }
 
-    private Map<String, BigDecimal> getAccountAssets() throws JSONException, InterruptedException {
+    private Map<String, BigDecimal> getAccountAssets() throws JSONException, InterruptedException, JsonProcessingException {
         Map<String, BigDecimal> assets = new HashMap<>();
-        JSONObject account = this.getAccountInfo();
-        JSONArray assetsV2 = account.getJSONArray("data").getJSONObject(0).getJSONArray("assetV2");
-        JSONArray assetsTrc20 = account.getJSONArray("data").getJSONObject(0).getJSONArray("trc20");
-        this.setHexAddress(account.getJSONArray("data").getJSONObject(0).getString("address"));
-        for (int i = 0; i < assetsV2.length(); i++) {
+        TronResponseAccountObject account = this.getAccountInfo();
+        this.setHexAddress(account.getData().get(0).getAddress());
+        for (int i = 0; i < account.getAssets().size(); i++) {
             Thread.sleep(200);
-            JSONObject assetV2 = assetsV2.getJSONObject(i);
-            JSONObject assetInfo = this.getAssetTrc10Info(assetV2.getString("key"));
-            String assetName = assetInfo.getJSONArray("data").getJSONObject(0).getString("name");
-            assets.put(assetName, new BigDecimal(assetV2.getInt("value")));
+            AssetV2Object assetV2 = account.getAssets().get(i);
+            TronAssetTrc10ResponseObject assetInfo = this.getAssetTrc10Info(assetV2.getKey());
+            String assetName = assetInfo.getName();
+            assets.put(assetName, new BigDecimal(assetV2.getValue()));
         }
 
-        for (int i = 0; i < assetsTrc20.length(); i++) {
+        for (int i = 0; i < account.getAssetsTrc20().size(); i++) {
             Thread.sleep(200);
-            JSONObject assetTrc20 = assetsTrc20.getJSONObject(i);
-            String key = assetTrc20.names().getString(0);
-            JSONObject assetInfo = this.postTronResponse("/wallet/getaccount", key);
-            String assetName = assetInfo.getString("account_name");
-            assets.put(assetName, new BigDecimal(assetTrc20.getString(key)));
+            AssetTrc20Object assetTrc20 = account.getAssetsTrc20().get(i);
+            String key = assetTrc20.getTokenName();
+            TronAssetTrc20ResponseObject assetInfo = this.getAssetTrc20Info(key);
+            String assetName = assetInfo.getAccount_name();
+            assets.put(assetName, new BigDecimal(assetTrc20.getValue()));
         }
         return assets;
     }
 
-    private List<ImportTradeDataHolder> getTradeDataHolders() throws JSONException, InterruptedException {
+    private List<ImportTradeDataHolder> getTradeDataHolders() throws JSONException, InterruptedException, JsonProcessingException {
         List<ImportTradeDataHolder> tradeDataHolders = new ArrayList<>();
-        List<JSONObject> allTransactionsInfoByAddress = this.getAllTransactionsInfoByAddress();
-        for (JSONObject response : allTransactionsInfoByAddress) {
-            JSONArray transactions = response.getJSONArray("data");
-            for (int i = 0; i < transactions.length(); i++) {
-                ImportTradeDataHolder tradeDataHolder;
-                if (transactions.getJSONObject(i).length() == 13 || transactions.getJSONObject(i).length() == 14) {
-                    TronTransactionObject transaction = new TronTransactionObject(transactions.getJSONObject(i));
-                    tradeDataHolder = new ImportTradeDataHolder(transaction, this.hexAddress);
-                } else {
-                    TronTransaction6SizeObject transaction = new TronTransaction6SizeObject(transactions.getJSONObject(i));
-                    tradeDataHolder = new ImportTradeDataHolder(transaction);
-                }
-                tradeDataHolders.add(tradeDataHolder);
+        List<TronResponseObject> allTransactionsInfoByAddress = this.getAllTransactionsInfoByAddress();
+        for (TronResponseObject response : allTransactionsInfoByAddress) {
+            for (TronResponseTransactionObject transaction : response.getData()) {
+                tradeDataHolders.add(transaction.toImportTradeDataHolder(this.hexAddress));
             }
         }
         List<ImportTradeDataHolder> newTradeDataHolders = new ArrayList<>();
@@ -229,15 +242,12 @@ public class TronServiceImpl implements TronService {
         return newTradeDataHolders;
     }
 
-    private List<ImportTradeDataHolder> getTrc20TradeDataHolders() throws JSONException, InterruptedException {
+    private List<ImportTradeDataHolder> getTrc20TradeDataHolders() throws JSONException, InterruptedException, JsonProcessingException {
         List<ImportTradeDataHolder> tradeDataHolders = new ArrayList<>();
-        List<JSONObject> allTransactionsInfoByAddress = this.getTrc20AllTransactionsInfoByAddress();
-        for (JSONObject response : allTransactionsInfoByAddress) {
-            JSONArray transactions = response.getJSONArray("data");
-            for (int i = 0; i < transactions.length(); i++) {
-                TronTransactionTrc20Object transaction = new TronTransactionTrc20Object(transactions.getJSONObject(i));
-                ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction, this.address);
-                tradeDataHolders.add(tradeDataHolder);
+        List<TronResponseObject> allTransactionsInfoByAddress = this.getTrc20AllTransactionsInfoByAddress();
+        for (TronResponseObject response : allTransactionsInfoByAddress) {
+            for (TronResponseTransactionObject transaction : response.getData()) {
+                tradeDataHolders.add(transaction.toImportTradeDataHolder(this.address));
             }
         }
         return tradeDataHolders;
@@ -248,8 +258,6 @@ public class TronServiceImpl implements TronService {
         DealsImportResult result = new DealsImportResult();
         this.setAddress(address);
         this.setMinTimestamp(startDate);
-        String endpoint = String.format("/v1/accounts/%s/transactions?limit=50&min_timestamp=%s", this.address, this.minTimestamp);
-        TronResponseObject tronResponseObject = this.getNewTronResponse(endpoint);
         Map<String, BigDecimal> assets = this.getAccountAssets();
         result.setCurrentMoneyRemainders(assets);
         List<ImportTradeDataHolder> tradeDataHolders = this.getTradeDataHolders();
@@ -261,7 +269,7 @@ public class TronServiceImpl implements TronService {
                 if (tradeDataHolder.getTradeSystemId() != null && tradeDataHolder.getTradeSystemId().equals(trc20TradeDataHolder.getTradeSystemId())) {
                     tradeDataHolder.setCurrency(trc20TradeDataHolder.getCurrency());
                     tradeDataHolder.setQuantity(trc20TradeDataHolder.getQuantity());
-                    tradeDataHolder.setOperation(String.valueOf(trc20TradeDataHolder.getOperation()));
+                    tradeDataHolder.setOperation(trc20TradeDataHolder.getOperation());
                     break;
                 }
             }

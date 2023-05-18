@@ -1,4 +1,4 @@
-package com.example.bybit.models;
+package com.example.bybit.models.troneResponses;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TroneTransactionRawData {
+public class TronTransactionRawData {
     private ArrayList<RawDataContract> contract;
     private Map<String, Object> properties = new HashMap<>();
 

@@ -1,5 +1,7 @@
-package com.example.bybit.models;
+package com.example.bybit.models.troneResponses;
 
+import com.example.bybit.models.ImportTradeDataHolder;
+import com.example.bybit.models.Operation;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.AllArgsConstructor;
@@ -14,7 +16,7 @@ import java.util.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TroneResponseTransactionObject {
+public class TronResponseTransactionObject {
     private String txID;
     private String tx_id;
     private String transaction_id;
@@ -32,7 +34,7 @@ public class TroneResponseTransactionObject {
     private Long energy_usage = 0L;
     private Long energy_usage_total = 0L;
     private Long energy_fee = 0L;
-    private TroneTransactionRawData raw_data;
+    private TronTransactionRawData raw_data;
     private Map<String, Object> token_info;
     private String from;
     private String to;
@@ -48,7 +50,8 @@ public class TroneResponseTransactionObject {
 
     public void setQuantity(String quantity) {
         if (quantity != null) {
-            this.quantity = new BigDecimal(Long.parseLong(quantity) / 1000000);
+            this.quantity = new BigDecimal(quantity);
+            this.quantity = this.quantity.divide(new BigDecimal(1000000));
         }
     }
 
@@ -98,12 +101,12 @@ public class TroneResponseTransactionObject {
 
     public Operation getOperation(String address) {
         Operation operation = null;
-        if (from == address) {
+        if (address.equals(from)) {
             operation = Operation.SHARE_OUT;
-        } else if (to == address) {
+        } else if (address.equals(to)) {
             operation = Operation.SHARE_IN;
         }
-        if (operation == null && raw_data.getContract().size() != 0) {
+        if (operation == null && raw_data!= null && raw_data.getContract().size() != 0) {
             operation = raw_data.getContract().get(0).getOperation(address);
         }
         return operation;

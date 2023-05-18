@@ -1,5 +1,6 @@
-package com.example.bybit.models;
+package com.example.bybit.models.troneResponses;
 
+import com.example.bybit.models.Operation;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
