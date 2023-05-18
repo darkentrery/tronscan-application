@@ -117,7 +117,7 @@ public class TronServiceImpl implements TronService {
         return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private List<TronResponseObject> getAllTransactionsInfoByAddress(String address) throws InterruptedException, JSONException, JsonProcessingException {
+    private List<TronResponseObject> getAllTransactionsInfoByAddress(String address) throws JSONException, JsonProcessingException {
         List<TronResponseObject> list = new ArrayList<>();
         TronResponseObject response = this.getTransactionsInfoByAddress(address);
         list.add(response);
@@ -134,7 +134,7 @@ public class TronServiceImpl implements TronService {
         return list;
     }
 
-    private List<TronResponseObject> getTrc20AllTransactionsInfoByAddress(String address) throws InterruptedException, JSONException, JsonProcessingException {
+    private List<TronResponseObject> getTrc20AllTransactionsInfoByAddress(String address) throws JSONException, JsonProcessingException {
         List<TronResponseObject> list = new ArrayList<>();
         TronResponseObject response = this.getTrc20TransactionsInfoByAddress(address);
         list.add(response);
@@ -151,7 +151,7 @@ public class TronServiceImpl implements TronService {
         return list;
     }
 
-    private Map<String, BigDecimal> getAccountAssets(String address) throws JSONException, InterruptedException, JsonProcessingException {
+    private Map<String, BigDecimal> getAccountAssets(String address) throws JSONException, JsonProcessingException {
         Map<String, BigDecimal> assets = new HashMap<>();
         TronResponseAccountObject account = this.getAccountInfo(address);
         this.setHexAddress(account.getData().get(0).getAddress());
@@ -240,7 +240,7 @@ public class TronServiceImpl implements TronService {
                 tradeDataHolders.add(trc20TradeDataHolder);
             }
         }
-        Collections.sort(tradeDataHolders, Comparator.comparing(ImportTradeDataHolder::getDate).reversed());
+        tradeDataHolders.sort(Comparator.comparing(ImportTradeDataHolder::getDate).reversed());
         result.setTransactions(tradeDataHolders);
 
         return result;

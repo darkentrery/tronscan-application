@@ -26,13 +26,11 @@ public class TronTransactionRawData {
 
     public BigDecimal getQuantity() {
         BigDecimal quantity = null;
-        if (quantity == null) {
-            if (this.contract.size() != 0) {
-                for (RawDataContract contract1 : this.contract) {
-                    if (contract1.getQuantity() != null) {
-                        quantity = contract1.getQuantity();
-                        break;
-                    }
+        if (this.contract.size() != 0) {
+            for (RawDataContract contract1 : this.contract) {
+                if (contract1.getQuantity() != null) {
+                    quantity = contract1.getQuantity();
+                    break;
                 }
             }
         }
