@@ -4,6 +4,7 @@ import com.example.bybit.models.*;
 import com.example.bybit.models.troneResponses.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.Getter;
 import lombok.Setter;
 import org.json.JSONException;
@@ -58,32 +59,6 @@ public class TronServiceImpl implements TronService {
         return mapper.readValue(response, objectClass);
     }
 
-//    public JSONObject getTronResponse(String endpoint) {
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        String url = String.format("%s%s", this.URL, endpoint);
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .get()
-//                .addHeader("Content-Type", "application/json")
-//                .build();
-//        return convertService.getJsonObject(client, request);
-//    }
-
-//    public JSONObject postTronResponse(String endpoint, String address) {
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        String url = String.format("%s%s", this.URL, endpoint);
-//        MediaType mediaType = MediaType.parse("application/json");
-//        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}", address);
-//        RequestBody body = RequestBody.create(mediaType, bodyContent);
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .post(body)
-//                .addHeader("Content-Type", "application/json")
-//                .addHeader("accept", "application/json")
-//                .build();
-//        return convertService.getJsonObject(client, request);
-//    }
-
     public String postTronResponse(String endpoint, String address) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -91,7 +66,7 @@ public class TronServiceImpl implements TronService {
         JSONObject personJsonObject = new JSONObject();
         personJsonObject.put("address", address);
         personJsonObject.put("visible", true);
-        HttpEntity<String> request = new HttpEntity<String>(personJsonObject.toString(), headers);
+        HttpEntity<String> request = new HttpEntity<>(personJsonObject.toString(), headers);
         String url = String.format("%s%s", this.URL, endpoint);
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, request, String.class);
         return responseEntity.getBody();
@@ -146,8 +121,9 @@ public class TronServiceImpl implements TronService {
         List<TronResponseObject> list = new ArrayList<>();
         TronResponseObject response = this.getTransactionsInfoByAddress(address);
         list.add(response);
+        RateLimiter rateLimiter = RateLimiter.create(2.5);
         while (response.getMeta().getFingerprint() != null) {
-            Thread.sleep(400);
+            rateLimiter.acquire();
             String nextPage = response.getMeta().getFingerprint();
             response = this.getTransactionsInfoByAddress(address, nextPage);
             if (!response.getSuccess()) {
@@ -162,8 +138,9 @@ public class TronServiceImpl implements TronService {
         List<TronResponseObject> list = new ArrayList<>();
         TronResponseObject response = this.getTrc20TransactionsInfoByAddress(address);
         list.add(response);
+        RateLimiter rateLimiter = RateLimiter.create(2);
         while (response.getMeta().getFingerprint() != null) {
-            Thread.sleep(500);
+            rateLimiter.acquire();
             String nextPage = response.getMeta().getFingerprint();
             response = this.getTrc20TransactionsInfoByAddress(address, nextPage);
             if (!response.getSuccess()) {
@@ -178,8 +155,9 @@ public class TronServiceImpl implements TronService {
         Map<String, BigDecimal> assets = new HashMap<>();
         TronResponseAccountObject account = this.getAccountInfo(address);
         this.setHexAddress(account.getData().get(0).getAddress());
+        RateLimiter rateLimiter = RateLimiter.create(5);
         for (int i = 0; i < account.getAssets().size(); i++) {
-            Thread.sleep(200);
+            rateLimiter.acquire();
             AssetV2Object assetV2 = account.getAssets().get(i);
             TronAssetTrc10ResponseObject assetInfo = this.getAssetTrc10Info(assetV2.getKey());
             String assetName = assetInfo.getName();
@@ -187,7 +165,7 @@ public class TronServiceImpl implements TronService {
         }
 
         for (int i = 0; i < account.getAssetsTrc20().size(); i++) {
-            Thread.sleep(200);
+            rateLimiter.acquire();
             AssetTrc20Object assetTrc20 = account.getAssetsTrc20().get(i);
             String key = assetTrc20.getTokenName();
             TronAssetTrc20ResponseObject assetInfo = this.getAssetTrc20Info(key);
