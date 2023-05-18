@@ -131,73 +131,6 @@ public class ImportTradeDataHolder {
         this.setOperation(operation);
     }
 
-    public ImportTradeDataHolder(TronTransactionObject object, String address) throws JSONException {
-        this.date = new Date(object.getLong("block_timestamp"));
-        try {
-            Integer quantity = object
-                    .getJSONObject("raw_data")
-                    .getJSONArray("contract")
-                    .getJSONObject(0)
-                    .getJSONObject("parameter")
-                    .getJSONObject("value")
-                    .getInt("amount");
-            this.quantity = new BigDecimal(quantity / 1000000);
-        } catch (JSONException e) {
-            log.error(String.valueOf(object.getJSONObject("raw_data")
-                    .getJSONArray("contract")
-                    .getJSONObject(0)
-                    .getJSONObject("parameter")
-            ));
-        }
-        this.currency = "TRX";
-        try {
-            this.tradeSystemId = object.getString("txID");
-        } catch (JSONException e) {
-            log.error(e.getMessage());
-        }
-        Integer fee_sum = object.getInt("net_usage") + object.getInt("energy_usage") + object.getInt("energy_usage_total");
-        Integer energy_fee = object.getInt("energy_fee");
-        if (energy_fee != 0) {
-            fee_sum += energy_fee / 1000000;
-        }
-        this.fee = new BigDecimal(fee_sum);
-        try {
-            var contractData = object.getJSONObject("raw_data")
-                    .getJSONArray("contract")
-                    .getJSONObject(0)
-                    .getJSONObject("parameter")
-                    .getJSONObject("value");
-            if (contractData.getString("owner_address").equals(address)) {
-                this.operation = Operation.SHARE_OUT;
-            } else if (contractData.has("contract_address") && contractData.getString("contract_address").equals(address)) {
-                this.operation = Operation.SHARE_IN;
-            } else if (contractData.has("to_address") && contractData.getString("to_address").equals(address)) {
-                this.operation = Operation.SHARE_IN;
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public ImportTradeDataHolder(TronTransaction6SizeObject object) throws JSONException {
-        this.date = new Date(object.getLong("block_timestamp"));
-        try {
-            Integer quantity = object
-                    .getJSONObject("data")
-                    .getJSONObject("call_value")
-                    .getInt("_");
-            this.quantity = new BigDecimal(quantity / 1000000);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        this.currency = "TRX";
-        try {
-            this.tradeSystemId = object.getString("tx_id");
-        } catch (JSONException e) {
-            log.error(e.getMessage());
-        }
-    }
-
     public ImportTradeDataHolder(ImportTradeDataHolder object1, ImportTradeDataHolder object2) {
         this.date = object1.date != null ? object1.date : object2.date;
         this.quantity = object1.quantity != null ? object1.quantity : object2.quantity;
@@ -211,18 +144,5 @@ public class ImportTradeDataHolder {
             this.fee = object1.fee.max(object2.fee);
         }
         this.operation = object1.operation != null ? object1.operation : object2.operation;
-    }
-
-    public ImportTradeDataHolder(TronTransactionTrc20Object object, String address) throws JSONException {
-        this.date = new Date(object.getLong("block_timestamp"));
-        this.quantity = new BigDecimal(object.getString("value"));
-        this.quantity = this.quantity.divide(new BigDecimal(1000000));
-        this.currency = object.getJSONObject("token_info").getString("symbol");
-        this.tradeSystemId = object.getString("transaction_id");
-        if (object.getString("from").equals(address)) {
-            this.operation = Operation.SHARE_OUT;
-        } else if (object.getString("to").equals(address)) {
-            this.operation = Operation.SHARE_IN;
-        }
     }
 }

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
@@ -58,9 +57,7 @@ public class TronServiceImpl implements TronService {
 
     private Object getResponseObject(String response, Class objectClass) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-//        JSONObject json = new JSONObject(response);
-        Object readValue = mapper.readValue(response, objectClass);
-        return readValue;
+        return mapper.readValue(response, objectClass);
     }
 
 //    public JSONObject getTronResponse(String endpoint) {
@@ -160,17 +157,6 @@ public class TronServiceImpl implements TronService {
             }
             list.add(response);
         }
-
-//        while (response.getJSONObject("meta").has("fingerprint")) {
-//            Thread.sleep(400);
-//            String nextPage = (String) response.getJSONObject("meta").get("fingerprint");
-//            response = this.getTransactionsInfoByAddress(nextPage);
-//            if (response.has("statusCode") && response.getInt("statusCode") == 400) {
-//                break;
-//            }
-//            list.add(response);
-//        }
-
         return list;
     }
 
