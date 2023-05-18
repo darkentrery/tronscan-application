@@ -1,7 +1,6 @@
 package com.example.bybit.models;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,8 +16,9 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RawDataContract {
-    @JsonSetter("parameter")
-    private BigDecimal quantity;
+
+    private Map<String, Object> parameter;
+    private String type;
     private Map<String, Object> properties = new HashMap<>();
 
     @JsonAnySetter
@@ -26,15 +26,39 @@ public class RawDataContract {
         properties.put(fieldName, fieldValue);
     }
 
-    public void setQuantity(LinkedHashMap parameter) {
+    public BigDecimal getQuantity() {
         BigDecimal quantity = null;
         try {
             LinkedHashMap value = (LinkedHashMap) parameter.get("value");
-            Integer amount = (Integer) value.get("amount");
-            quantity = new BigDecimal(amount / 1000000);
+            if (value.containsKey("amount")) {
+                if (value.get("amount") instanceof Integer) {
+                    Integer amount = (Integer) value.get("amount");
+                    quantity = new BigDecimal(amount / 1000000);
+                } else if (value.get("amount") instanceof Long) {
+                    Long amount = (Long) value.get("amount");
+                    quantity = new BigDecimal(amount / 1000000);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        this.quantity = quantity;
+        return quantity;
+    }
+
+    public Operation getOperation(String address) {
+        Operation operation = null;
+        try {
+            LinkedHashMap<String, Object> contractData = (LinkedHashMap<String, Object>) this.parameter.get("value");
+            if (contractData.get("owner_address").equals(address)) {
+                operation = Operation.SHARE_OUT;
+            } else if (contractData.containsKey("contract_address") && contractData.get("contract_address").equals(address)) {
+                operation = Operation.SHARE_IN;
+            } else if (contractData.containsKey("to_address") && contractData.get("to_address").equals(address)) {
+                operation = Operation.SHARE_IN;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return operation;
     }
 }

@@ -59,6 +59,10 @@ public class TronServiceImpl implements TronService {
         String stringToParse = responseEntity.getBody();
         JSONObject json = new JSONObject(stringToParse);
         TronResponseObject readValue = mapper.readValue(responseEntity.getBody(), TronResponseObject.class);
+        List<ImportTradeDataHolder> transactions = new ArrayList<>();
+        for (TroneResponseTransactionObject troneResponseTransactionObject : readValue.getData()) {
+            transactions.add(troneResponseTransactionObject.toImportTradeDataHolder(this.address));
+        }
 //        ObjectMapper mapper = new ObjectMapper();
 //        TronResponseObject obs = Arrays.stream(objects)
 //                .map(object -> mapper.convertValue(object, TronResponseObject.class))

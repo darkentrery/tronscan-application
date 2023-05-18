@@ -76,6 +76,10 @@ public class ImportTradeDataHolder {
         }
     }
 
+    public void setOperation(Operation operation) {
+        this.operation = operation;
+    }
+
     private Map<String, String> operationMapping() {
         HashMap<String, String> map = new HashMap<>();
         map.put("TRANSFER_IN", "SHARE_IN");

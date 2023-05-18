@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,10 +13,9 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TronResponseObject {
-    private ArrayList<TroneResponseTransactionObject> data;
-    private Boolean success;
-    private TronResponseMetaObject meta;
+public class TronResponseMetaObject {
+    private String fingerprint;
+    private Integer page_size;
     private Map<String, Object> properties = new HashMap<>();
 
     @JsonAnySetter
@@ -25,4 +23,3 @@ public class TronResponseObject {
         properties.put(fieldName, fieldValue);
     }
 }
-
