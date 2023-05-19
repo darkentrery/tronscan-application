@@ -16,7 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TronTransactionRawData {
-    private ArrayList<RawDataContract> contract;
+    private ArrayList<RawDataContract> contract = new ArrayList<>();
     private Map<String, Object> properties = new HashMap<>();
 
     @JsonAnySetter
@@ -26,12 +26,10 @@ public class TronTransactionRawData {
 
     public BigDecimal getQuantity() {
         BigDecimal quantity = null;
-        if (this.contract.size() != 0) {
-            for (RawDataContract contract1 : this.contract) {
-                if (contract1.getQuantity() != null) {
-                    quantity = contract1.getQuantity();
-                    break;
-                }
+        for (RawDataContract contract1 : this.contract) {
+            if (contract1.getQuantity() != null) {
+                quantity = contract1.getQuantity();
+                break;
             }
         }
         return quantity;

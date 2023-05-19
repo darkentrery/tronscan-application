@@ -12,6 +12,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Getter
@@ -26,7 +27,7 @@ public class TronResponseTransactionObject {
     @JsonSetter("block_timestamp")
     private Date date;
 
-    private Map<String, Object> call_value;
+    private Map<String, Object> call_value = new HashMap<>();
 
     @JsonSetter("value")
     private BigDecimal quantity;
@@ -36,8 +37,10 @@ public class TronResponseTransactionObject {
     private Long energy_usage = 0L;
     private Long energy_usage_total = 0L;
     private Long energy_fee = 0L;
-    private TronTransactionRawData raw_data;
-    private Map<String, Object> token_info;
+    private TronTransactionRawData raw_data = new TronTransactionRawData();
+
+    @JsonSetter("token_info")
+    private String currency = "TRX";
     private String from;
     private String to;
 
@@ -66,24 +69,20 @@ public class TronResponseTransactionObject {
     public BigDecimal getQuantity() {
         BigDecimal quantity = this.quantity;
         if (quantity == null) {
-            if (this.call_value != null && this.call_value.containsKey("_")) {
+            if (this.call_value.containsKey("_")) {
                 quantity = new BigDecimal((Integer) this.call_value.get("_") / 1000000);
             }
         }
         if (quantity == null) {
-            if (this.raw_data != null && this.raw_data.getContract() != null && this.raw_data.getQuantity() != null) {
-                quantity = this.raw_data.getQuantity();
-            }
+            quantity = this.raw_data.getQuantity();
         }
         return quantity;
     }
 
-    public String getCurrency() {
-        String currency = "TRX";
-        if (this.token_info != null) {
-            currency = (String) this.token_info.get("symbol");
+    public void setCurrency(LinkedHashMap<String, Object> token_info) {
+        if (token_info != null) {
+            this.currency = (String) token_info.get("symbol");
         }
-        return currency;
     }
 
     public String getTradeSystemId() {
@@ -108,7 +107,7 @@ public class TronResponseTransactionObject {
         } else if (address.equals(to)) {
             operation = Operation.SHARE_IN;
         }
-        if (operation == null && raw_data!= null && raw_data.getContract().size() != 0) {
+        if (operation == null && raw_data.getContract().size() != 0) {
             operation = raw_data.getContract().get(0).getOperation(address);
         }
         return operation;
