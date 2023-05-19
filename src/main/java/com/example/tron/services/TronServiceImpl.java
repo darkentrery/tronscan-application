@@ -1,15 +1,16 @@
-package com.example.bybit.services;
+package com.example.tron.services;
 
-import com.example.bybit.models.*;
-import com.example.bybit.models.troneResponses.*;
+import com.example.tron.models.DealsImportResult;
+import com.example.tron.models.ImportTradeDataHolder;
+import com.example.tron.models.troneResponses.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.Getter;
 import lombok.Setter;
 import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +21,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -107,7 +110,7 @@ public class TronServiceImpl implements TronService {
         return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
     }
 
-    private TronResponseObject getTrc20TransactionsInfoByAddress(String address,String fingerprint) throws JsonProcessingException {
+    private TronResponseObject getTrc20TransactionsInfoByAddress(String address, String fingerprint) throws JsonProcessingException {
         String endpoint = String.format("/v1/accounts/%s/transactions/trc20/?limit=200&min_timestamp=%s&fingerprint=%s", address, this.minTimestamp, fingerprint);
         String responseString = this.getTronResponse(endpoint);
         return (TronResponseObject) this.getResponseObject(responseString, TronResponseObject.class);
@@ -171,7 +174,7 @@ public class TronServiceImpl implements TronService {
         return assets;
     }
 
-    private List<ImportTradeDataHolder> getTradeDataHolders(String address) throws JSONException, JsonProcessingException {
+    private List<ImportTradeDataHolder> getTradeDataHolders(String address) throws JSONException, InterruptedException, JsonProcessingException {
         List<ImportTradeDataHolder> tradeDataHolders = new ArrayList<>();
         List<TronResponseObject> allTransactionsInfoByAddress = this.getAllTransactionsInfoByAddress(address);
         for (TronResponseObject response : allTransactionsInfoByAddress) {
@@ -200,7 +203,7 @@ public class TronServiceImpl implements TronService {
         return newTradeDataHolders;
     }
 
-    private List<ImportTradeDataHolder> getTrc20TradeDataHolders(String address) throws JSONException, JsonProcessingException {
+    private List<ImportTradeDataHolder> getTrc20TradeDataHolders(String address) throws JSONException, InterruptedException, JsonProcessingException {
         List<ImportTradeDataHolder> tradeDataHolders = new ArrayList<>();
         List<TronResponseObject> allTransactionsInfoByAddress = this.getTrc20AllTransactionsInfoByAddress(address);
         for (TronResponseObject response : allTransactionsInfoByAddress) {
@@ -212,7 +215,7 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, IOException {
+    public DealsImportResult getTronDetailImportResult(String address, String startDate) throws JSONException, InterruptedException, IOException {
         DealsImportResult result = new DealsImportResult();
         this.setMinTimestamp(startDate);
         Map<String, BigDecimal> assets = this.getAccountAssets(address);
