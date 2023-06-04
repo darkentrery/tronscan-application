@@ -90,7 +90,7 @@ public class BybitServiceImpl implements BybitService{
             for (ImportTradeDataHolder trade : trades) {
                 for (ImportTradeDataHolder order : orders) {
                     if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
-                        trade.setOperation(String.valueOf(order.getOperation()));
+                        trade.setOperation(order.getOperation());
                     }
                 }
             }

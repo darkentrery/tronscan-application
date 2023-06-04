@@ -111,26 +111,6 @@ public class ImportTradeDataHolder {
         this.tradeSystemId = object.getString("orderId");
     }
 
-    public ImportTradeDataHolder(V1TradeObject object) throws JSONException {
-        this.price = !object.getString("price").equals("") ? new BigDecimal(object.getString("price")) : null;
-        this.date = new Date(Long.parseLong(object.getString("time")));
-        this.quantity = !object.getString("qty").equals("") ? new BigDecimal(object.getString("qty")) : null;
-        this.fee = !object.getJSONObject("fee").getString("fee").equals("") ? new BigDecimal(object.getJSONObject("fee").getString("fee")) : BigDecimal.ZERO;
-        this.currency = object.getString("symbol");
-        this.tradeSystemId = object.getString("orderId");
-        this.feeCurrency = object.getJSONObject("fee").getString("feeTokenName");
-    }
-
-    public ImportTradeDataHolder(V1OrderObject object) throws JSONException {
-        this.price = !object.getString("price").equals("") ? new BigDecimal(object.getString("price")) : null;
-        this.date = new Date(Long.parseLong(object.getString("time")));
-        this.quantity = !object.getString("executedQty").equals("") ? new BigDecimal(object.getString("executedQty")) : null;
-        this.currency = object.getString("symbol");
-        this.tradeSystemId = object.getString("orderId");
-        String operation = object.getString("side");
-        this.setOperation(operation);
-    }
-
     public ImportTradeDataHolder(ImportTradeDataHolder object1, ImportTradeDataHolder object2) {
         this.date = object1.date != null ? object1.date : object2.date;
         this.quantity = object1.quantity != null ? object1.quantity : object2.quantity;
