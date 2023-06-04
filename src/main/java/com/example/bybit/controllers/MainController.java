@@ -4,6 +4,7 @@ import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class MainController {
     private TronService tronService;
 
     @PostMapping("/credentials")
-    public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+    public ResponseEntity<DealsImportResult> getBybitData(@RequestBody Credentials credentials) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
         String apiKey = credentials.getAccessKey();
         String apiSecret = credentials.getSecretKey();
         String startDate = credentials.getStartDate();

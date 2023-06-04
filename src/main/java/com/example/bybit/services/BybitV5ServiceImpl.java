@@ -58,8 +58,8 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
 //                .addHeader("accept", "application/json")
 //                .build();
 //        return convertService.getJsonObject(client, request);
-        String queryString = "";
-        return this.getV5Response("", "/asset/v3/private/transfer/sub-member-transfer/list/query", queryString);
+        String queryString = "category=linear&symbol=ETH";
+        return this.getV5Response("", "/v5/market/funding/history", queryString);
     }
 
     private List<JSONObject> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {

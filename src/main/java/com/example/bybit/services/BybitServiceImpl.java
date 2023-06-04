@@ -1,6 +1,8 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import com.example.bybit.models.bybitResponses.BalanceV1Object;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +62,7 @@ public class BybitServiceImpl implements BybitService{
     }
 
     @Override
-    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET, String startDate) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET, String startDate) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
         DealsImportResult result = new DealsImportResult();
         this.setMinTimestamp(startDate);
         if (API_KEY != null && API_SECRET != null) {
@@ -68,9 +70,21 @@ public class BybitServiceImpl implements BybitService{
             this.setAPI_SECRET(API_SECRET);
             bybitV1Service.setParameters(this.getParameters());
             bybitV5Service.setParameters(this.getParameters());
-            JSONObject any = bybitV5Service.getAny();
+//            JSONObject any = bybitV5Service.getAny();
 
-            JSONObject v1Balance = bybitV1Service.getV1WalletBalance();
+//            JSONObject v1Balance = bybitV1Service.getV1WalletBalance();
+
+//            BalanceV1Object balanceV1 = bybitV1Service.getBalanceObject();
+//            result.setCurrentMoneyRemainders(balanceV1);
+//            JSONObject balance = bybitV5Service.getWalletBalance();
+//            result.setCurrentMoneyRemainders(balance);
+
+//            if (v1Balance != null) {
+//                V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
+//                result.setCurrentMoneyRemainders(v1BalanceObject);
+//            }
+
+
             List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
             List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
             for (ImportTradeDataHolder trade : trades) {
@@ -82,14 +96,9 @@ public class BybitServiceImpl implements BybitService{
             }
 
             List<ImportTradeDataHolder> transactions = bybitV5Service.getTransactions(API_KEY, API_SECRET);
-            JSONObject balance = bybitV5Service.getWalletBalance();
             result.extendTransactions(transactions);
-            result.setCurrentMoneyRemainders(balance);
             result.extendTransactions(trades);
-            if (v1Balance != null) {
-                V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
-                result.setCurrentMoneyRemainders(v1BalanceObject);
-            }
+
         }
         return result;
     }

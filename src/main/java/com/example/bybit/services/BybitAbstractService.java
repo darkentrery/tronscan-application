@@ -1,5 +1,7 @@
 package com.example.bybit.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +38,10 @@ public class BybitAbstractService {
             z = now.minusMonths(12);
         }
         return z;
+    }
+
+    protected Object getResponseObject(String response, Class objectClass) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(response, objectClass);
     }
 }

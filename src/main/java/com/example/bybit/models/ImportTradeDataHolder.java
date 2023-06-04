@@ -80,7 +80,7 @@ public class ImportTradeDataHolder {
         this.operation = operation;
     }
 
-    private Map<String, String> operationMapping() {
+    public Map<String, String> operationMapping() {
         HashMap<String, String> map = new HashMap<>();
         map.put("TRANSFER_IN", "SHARE_IN");
         map.put("TRANSFER_OUT", "SHARE_OUT");

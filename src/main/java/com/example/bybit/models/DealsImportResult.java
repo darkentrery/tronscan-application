@@ -1,5 +1,7 @@
 package com.example.bybit.models;
 
+import com.example.bybit.models.bybitResponses.BalanceRecordV1Object;
+import com.example.bybit.models.bybitResponses.BalanceV1Object;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -70,6 +72,12 @@ public class DealsImportResult {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void setCurrentMoneyRemainders(BalanceV1Object object) {
+        for (BalanceRecordV1Object record : object.getResult().getBalances()) {
+            this.currentMoneyRemainders.put(record.getCoin(), record.getTotal());
         }
     }
 
