@@ -1,13 +1,13 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
-import com.example.bybit.models.bybitResponses.BalanceV1Object;
+import com.example.bybit.models.bybitResponses.BalanceV5Object;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -72,12 +72,12 @@ public class BybitServiceImpl implements BybitService{
             bybitV5Service.setParameters(this.getParameters());
 //            JSONObject any = bybitV5Service.getAny();
 
-//            JSONObject v1Balance = bybitV1Service.getV1WalletBalance();
 
 //            BalanceV1Object balanceV1 = bybitV1Service.getBalanceObject();
 //            result.setCurrentMoneyRemainders(balanceV1);
 //            JSONObject balance = bybitV5Service.getWalletBalance();
-//            result.setCurrentMoneyRemainders(balance);
+//            BalanceV5Object balanceV5Object = bybitV5Service.getBalanceObject();
+//            result.setCurrentMoneyRemainders(balanceV5Object);
 
 //            if (v1Balance != null) {
 //                V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
