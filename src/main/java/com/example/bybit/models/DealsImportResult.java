@@ -4,9 +4,6 @@ import com.example.bybit.models.bybitResponses.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -41,37 +38,6 @@ public class DealsImportResult {
 
     public void setCurrentMoneyRemainders(Map<String, BigDecimal> currentMoneyRemainders) {
         this.currentMoneyRemainders = currentMoneyRemainders;
-    }
-
-    public void setCurrentMoneyRemainders(JSONObject object) throws JSONException {
-        if (object != null) {
-            JSONArray balances = object.getJSONObject("result").getJSONArray("list");
-            for (int j = 0; j < balances.length(); j++) {
-                JSONArray coins = balances.getJSONObject(j).getJSONArray("coin");
-                for (int i = 0; i < coins.length(); i++) {
-                    JSONObject coin = coins.getJSONObject(i);
-                    String key = coin.getString("coin");
-                    BigDecimal value = new BigDecimal(coin.getString("walletBalance"));
-                    this.currentMoneyRemainders.put(key, value);
-                }
-            }
-        }
-    }
-
-    public void setCurrentMoneyRemainders(V1BalanceObject object) throws JSONException {
-        if (object != null) {
-            try {
-                JSONArray balances = object.getJSONObject("result").getJSONArray("balances");
-                for (int i = 0; i < balances.length(); i++) {
-                    JSONObject coin = balances.getJSONObject(i);
-                    String key = coin.getString("coin");
-                    BigDecimal value = new BigDecimal(coin.getString("total"));
-                    this.currentMoneyRemainders.put(key, value);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public void setCurrentMoneyRemainders(BalanceV1Object object) {

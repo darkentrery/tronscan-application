@@ -87,7 +87,6 @@ public class BybitV1ServiceImpl extends BybitAbstractService implements BybitV1S
         RateLimiter rateLimiter = RateLimiter.create(2);
         while (startDate.toInstant().toEpochMilli() < endDate.toInstant().toEpochMilli()) {
             rateLimiter.acquire();
-//            Thread.sleep(500);
             try {
                 OrdersV1Object ordersV1Object = this.getOrdersObject(useStartDate, endDate);
                 orders.add(ordersV1Object);

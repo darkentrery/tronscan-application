@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -95,20 +94,6 @@ public class ImportTradeDataHolder {
         map.put("FEE_REFUND", "");
         map.put("INTEREST", "");
         return map;
-    }
-
-    public ImportTradeDataHolder(V5TradeObject object) throws JSONException {
-        this.price = !object.getString("tradePrice").equals("") ? new BigDecimal(object.getString("tradePrice")) : null;
-        String operation = object.getString("type");
-        if (operation.equals("TRADE") && object.getString("side").equals("Sell")) {
-            operation = "-TRADE";
-        }
-        this.setOperation(operation);
-        this.date = new Date(Long.parseLong(object.getString("transactionTime")));
-        this.quantity = !object.getString("qty").equals("") ? new BigDecimal(object.getString("qty")) : null;
-        this.fee = !object.getString("fee").equals("") ? new BigDecimal(object.getString("fee")) : BigDecimal.ZERO;
-        this.currency = object.getString("currency");
-        this.tradeSystemId = object.getString("orderId");
     }
 
     public ImportTradeDataHolder(ImportTradeDataHolder object1, ImportTradeDataHolder object2) {

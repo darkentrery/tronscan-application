@@ -1,23 +1,22 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.ImportTradeDataHolder;
-import com.example.bybit.models.V5TradeObject;
-import com.example.bybit.models.bybitResponses.BalanceV1Object;
 import com.example.bybit.models.bybitResponses.BalanceV5Object;
+import com.example.bybit.models.bybitResponses.TransactionV5Object;
+import com.example.bybit.models.bybitResponses.TransactionsV5Object;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import org.json.JSONArray;
+import com.google.common.util.concurrent.RateLimiter;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import org.json.JSONObject;
+
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -28,46 +27,15 @@ import java.util.List;
 @Service
 public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5Service{
     @Override
-    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException {
+    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException, JsonProcessingException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
-        List<JSONObject> responses = this.getAllResponses();
-        for (JSONObject response : responses) {
-            try {
-                JSONArray jsonTransactions = response.getJSONObject("result").getJSONArray("list");
-                for (int i = 0; i < jsonTransactions.length(); i++) {
-                    V5TradeObject transaction = new V5TradeObject(jsonTransactions.getJSONObject(i));
-                    ImportTradeDataHolder tradeDataHolder = new ImportTradeDataHolder(transaction);
-                    transactions.add(tradeDataHolder);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+        List<TransactionsV5Object> responses = this.getAllResponses();
+        for (TransactionsV5Object transactionsV5Object : responses) {
+            for (TransactionV5Object transactionV5Object : transactionsV5Object.getResult().getList()) {
+                transactions.add(transactionV5Object.toImportTradeDataHolder());
             }
         }
         return transactions;
-    }
-
-    @Override
-    public JSONObject getWalletBalance() throws NoSuchAlgorithmException, InvalidKeyException {
-        String queryString = "accountType=UNIFIED";
-        return this.getV5Response("", "/v5/account/wallet-balance", queryString);
-    }
-
-    @Override
-    public JSONObject getAny() throws NoSuchAlgorithmException, InvalidKeyException {
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        String url = String.format("%s%s", this.URL, "/s1/byfi/query-orders");
-//        MediaType mediaType = MediaType.parse("application/json");
-//        String bodyContent = String.format("{\"address\":\"%s\",\"visible\":true}");
-//        RequestBody body = RequestBody.create(mediaType, bodyContent);
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .post(body)
-//                .addHeader("Content-Type", "application/json")
-//                .addHeader("accept", "application/json")
-//                .build();
-//        return convertService.getJsonObject(client, request);
-        String queryString = "category=linear&symbol=ETH";
-        return this.getV5Response("", "/v5/market/funding/history", queryString);
     }
 
     @Override
@@ -78,32 +46,48 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return (BalanceV5Object) this.getResponseObject(responseString, BalanceV5Object.class);
     }
 
-    private List<JSONObject> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
+    private List<TransactionsV5Object> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
         String cursor = "";
-        List<JSONObject> responses = new ArrayList<>();
-        JSONObject jsonTransactions = this.getTransactionLog(cursor);
-        if (jsonTransactions.getInt("retCode") == 0) {
-            responses.add(jsonTransactions);
-            while (jsonTransactions.getJSONObject("result").get("nextPageCursor") != JSONObject.NULL) {
-                cursor = jsonTransactions.getJSONObject("result").getString("nextPageCursor");
-                Thread.sleep(500);
-                jsonTransactions = this.getTransactionLog(cursor);
-                responses.add(jsonTransactions);
+        List<TransactionsV5Object> responses = new ArrayList<>();
+        TransactionsV5Object transactionsV5Object = this.getTransactionLog(cursor);
+        if (transactionsV5Object.getRetCode() == 0) {
+            responses.add(transactionsV5Object);
+            RateLimiter rateLimiter = RateLimiter.create(2);
+            while (transactionsV5Object.getResult().getNextPageCursor() != null && !transactionsV5Object.getResult().getNextPageCursor().equals("")) {
+                cursor = transactionsV5Object.getResult().getNextPageCursor();
+                rateLimiter.acquire();
+                Thread.sleep(5000);
+                transactionsV5Object = this.getTransactionLog(cursor);
+                responses.add(transactionsV5Object);
             }
         }
         return responses;
     }
 
-    private JSONObject getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException {
-        String queryString = String.format("accountType=UNIFIED&limit=50&startTime=%s", this.minTimestamp);
-        JSONObject transactions = this.getV5Response(cursor, "/v5/account/transaction-log", queryString);
-        if (transactions.getInt("retCode") == 10016) {
-            Thread.sleep(3000);
-            String time = ZonedDateTime.now().toString();
-            System.out.println(time);
+    private TransactionsV5Object getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
+        List<String> params = new ArrayList<>();
+        params.add("accountType=UNIFIED");
+        params.add("limit=5");
+        params.add(String.format("startTime=%s", this.minTimestamp));
+
+        if (!cursor.equals("")) {
+            params.add(String.format("cursor=%s", cursor));
+        }
+        String responseString = this.getResponse("/v5/account/transaction-log", params);
+        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseString, TransactionsV5Object.class);
+
+        String query = String.format("accountType=UNIFIED&limit=5&startTime=%s", this.minTimestamp);
+        JSONObject json = this.getV5Response(cursor, "/v5/account/transaction-log", query);
+
+        if (transactionsV5Object.getRetCode() == 10016) {
+            RateLimiter rateLimiter = RateLimiter.create(0.3);
+            rateLimiter.acquire();
+//            Thread.sleep(3000);
+//            String time = ZonedDateTime.now().toString();
+//            System.out.println(time);
             return this.getTransactionLog(cursor);
         }
-        return transactions;
+        return transactionsV5Object;
     }
 
     private JSONObject getV5Response(String cursor, String endpoint, String queryString) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -114,6 +98,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         String signature = convertService.genV5Sign(queryString, TIMESTAMP, this.API_KEY, this.API_SECRET, this.RECV_WINDOW);
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         String url = String.format("%s%s?%s", this.URL, endpoint, queryString);
+
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -129,15 +114,15 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
     private String getResponse(String endpoint, List<String> params) throws NoSuchAlgorithmException, InvalidKeyException {
         String TIMESTAMP = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
         String queryString = String.join("&", params);
-        queryString += String.format("&timestamp=%s", TIMESTAMP);
+//        queryString += String.format("&timestamp=%s", TIMESTAMP);
 //        String signature = this.convertService.genV1Sign(TIMESTAMP, queryString, this.API_SECRET);
 //        queryString += String.format("&sign=%s", signature);
 //        if (!cursor.equals("")) {
 //            queryString += String.format("&cursor=%s", cursor);
 //        }
         String signature = convertService.genV5Sign(queryString, TIMESTAMP, this.API_KEY, this.API_SECRET, this.RECV_WINDOW);
-
         String url = String.format("%s%s?%s", this.URL, endpoint, queryString);
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-BAPI-API-KEY", API_KEY);
@@ -145,8 +130,8 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         headers.set("X-BAPI-TIMESTAMP", TIMESTAMP);
         headers.set("X-BAPI-RECV-WINDOW", this.RECV_WINDOW);
         headers.set("Content-Type", "application/json");
-        HttpEntity<String> entity = new HttpEntity<>("body", headers);
 
+        HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         return responseEntity.getBody();
     }

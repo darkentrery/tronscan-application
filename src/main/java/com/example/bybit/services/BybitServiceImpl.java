@@ -75,29 +75,23 @@ public class BybitServiceImpl implements BybitService{
 
 //            BalanceV1Object balanceV1 = bybitV1Service.getBalanceObject();
 //            result.setCurrentMoneyRemainders(balanceV1);
-//            JSONObject balance = bybitV5Service.getWalletBalance();
 //            BalanceV5Object balanceV5Object = bybitV5Service.getBalanceObject();
 //            result.setCurrentMoneyRemainders(balanceV5Object);
 
-//            if (v1Balance != null) {
-//                V1BalanceObject v1BalanceObject = new V1BalanceObject(v1Balance);
-//                result.setCurrentMoneyRemainders(v1BalanceObject);
+
+//            List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
+//            List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
+//            for (ImportTradeDataHolder trade : trades) {
+//                for (ImportTradeDataHolder order : orders) {
+//                    if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
+//                        trade.setOperation(order.getOperation());
+//                    }
+//                }
 //            }
-
-
-            List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
-            List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
-            for (ImportTradeDataHolder trade : trades) {
-                for (ImportTradeDataHolder order : orders) {
-                    if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
-                        trade.setOperation(order.getOperation());
-                    }
-                }
-            }
 
             List<ImportTradeDataHolder> transactions = bybitV5Service.getTransactions(API_KEY, API_SECRET);
             result.extendTransactions(transactions);
-            result.extendTransactions(trades);
+//            result.extendTransactions(trades);
 
         }
         return result;

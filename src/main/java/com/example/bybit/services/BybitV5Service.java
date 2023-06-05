@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface BybitV5Service {
-    List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException;
-    JSONObject getWalletBalance() throws NoSuchAlgorithmException, InvalidKeyException;
+    List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException, JsonProcessingException;
     BalanceV5Object getBalanceObject() throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException;
     void setParameters(Map<String, String> parameters);
-    JSONObject getAny() throws NoSuchAlgorithmException, InvalidKeyException;
 }
