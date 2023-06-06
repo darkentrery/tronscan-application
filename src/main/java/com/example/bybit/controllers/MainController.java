@@ -4,7 +4,6 @@ import com.example.bybit.models.Credentials;
 import com.example.bybit.models.DealsImportResult;
 import com.example.bybit.services.BybitService;
 import com.example.bybit.services.TronService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
