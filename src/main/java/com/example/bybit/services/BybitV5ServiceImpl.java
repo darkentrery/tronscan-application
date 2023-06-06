@@ -4,7 +4,6 @@ import com.example.bybit.models.ImportTradeDataHolder;
 import com.example.bybit.models.bybitResponses.BalanceV5Object;
 import com.example.bybit.models.bybitResponses.TransactionV5Object;
 import com.example.bybit.models.bybitResponses.TransactionsV5Object;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.util.concurrent.RateLimiter;
 import okhttp3.Call;
 import okhttp3.Response;
@@ -28,7 +27,7 @@ import java.util.List;
 @Service
 public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5Service{
     @Override
-    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException, IOException {
+    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
         List<TransactionsV5Object> responses = this.getAllResponses();
         for (TransactionsV5Object transactionsV5Object : responses) {
@@ -40,14 +39,19 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
     }
 
     @Override
-    public BalanceV5Object getBalanceObject() throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException {
+    public BalanceV5Object getBalanceObject() {
         List<String> params = new ArrayList<>();
         params.add("accountType=UNIFIED");
-        String responseString = this.getResponse("/v5/account/wallet-balance", params);
-        return (BalanceV5Object) this.getResponseObject(responseString, BalanceV5Object.class);
+        try {
+            String responseString = this.getResponse("/v5/account/wallet-balance", params);
+            return (BalanceV5Object) this.getResponseObject(responseString, BalanceV5Object.class);
+        } catch (Exception ex) {
+            return new BalanceV5Object();
+        }
+
     }
 
-    private List<TransactionsV5Object> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, IOException {
+    private List<TransactionsV5Object> getAllResponses() throws JSONException {
         String cursor = "";
         List<TransactionsV5Object> responses = new ArrayList<>();
         TransactionsV5Object transactionsV5Object = this.getTransactionLog(cursor);
@@ -64,10 +68,10 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return responses;
     }
 
-    private TransactionsV5Object getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, IOException {
+    private TransactionsV5Object getTransactionLog(String cursor) throws JSONException {
         List<String> params = new ArrayList<>();
         params.add("accountType=UNIFIED");
-        params.add("limit=5");
+        params.add("limit=50");
         params.add(String.format("startTime=%s", this.minTimestamp));
 
         if (!cursor.equals("")) {
@@ -75,16 +79,20 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         }
 //        String responseString = this.getResponse("/v5/account/transaction-log", params);
 //        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseString, TransactionsV5Object.class);
+        try {
+            String responseStringV5 = this.getV5Response("/v5/account/transaction-log", params);
+            TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseStringV5, TransactionsV5Object.class);
 
-        String responseStringV5 = this.getV5Response("/v5/account/transaction-log", params);
-        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseStringV5, TransactionsV5Object.class);
-
-        if (transactionsV5Object.getRetCode() == 10016) {
-            RateLimiter rateLimiter = RateLimiter.create(0.3);
-            rateLimiter.acquire();
-            return this.getTransactionLog(cursor);
+            if (transactionsV5Object.getRetCode() == 10016) {
+                RateLimiter rateLimiter = RateLimiter.create(0.3);
+                rateLimiter.acquire();
+                return this.getTransactionLog(cursor);
+            }
+            return transactionsV5Object;
+        } catch (Exception ex) {
+            return new TransactionsV5Object();
         }
-        return transactionsV5Object;
+
     }
 
     private String getV5Response(String endpoint, List<String> params) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
@@ -122,7 +130,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         headers.set("X-BAPI-RECV-WINDOW", this.RECV_WINDOW);
         headers.set("Content-Type", "application/json");
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<String> entity = new HttpEntity<>("body", headers);
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         return responseEntity.getBody();
     }

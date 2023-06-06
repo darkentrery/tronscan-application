@@ -1,11 +1,10 @@
 package com.example.bybit.services;
 
 import com.example.bybit.models.*;
+import com.example.bybit.models.bybitResponses.BalanceV1Object;
 import com.example.bybit.models.bybitResponses.BalanceV5Object;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.Setter;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,28 +70,25 @@ public class BybitServiceImpl implements BybitService{
             this.setAPI_SECRET(API_SECRET);
             bybitV1Service.setParameters(this.getParameters());
             bybitV5Service.setParameters(this.getParameters());
-//            JSONObject any = bybitV5Service.getAny();
 
+            BalanceV1Object balanceV1 = bybitV1Service.getBalanceObject();
+            result.setCurrentMoneyRemainders(balanceV1);
+            BalanceV5Object balanceV5Object = bybitV5Service.getBalanceObject();
+            result.setCurrentMoneyRemainders(balanceV5Object);
 
-//            BalanceV1Object balanceV1 = bybitV1Service.getBalanceObject();
-//            result.setCurrentMoneyRemainders(balanceV1);
-//            BalanceV5Object balanceV5Object = bybitV5Service.getBalanceObject();
-//            result.setCurrentMoneyRemainders(balanceV5Object);
-
-
-//            List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
-//            List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
-//            for (ImportTradeDataHolder trade : trades) {
-//                for (ImportTradeDataHolder order : orders) {
-//                    if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
-//                        trade.setOperation(order.getOperation());
-//                    }
-//                }
-//            }
+            List<ImportTradeDataHolder> orders = bybitV1Service.getV1Orders();
+            List<ImportTradeDataHolder> trades = bybitV1Service.getV1Trades();
+            for (ImportTradeDataHolder trade : trades) {
+                for (ImportTradeDataHolder order : orders) {
+                    if (trade.getTradeSystemId().equals(order.getTradeSystemId())) {
+                        trade.setOperation(order.getOperation());
+                    }
+                }
+            }
 
             List<ImportTradeDataHolder> transactions = bybitV5Service.getTransactions(API_KEY, API_SECRET);
             result.extendTransactions(transactions);
-//            result.extendTransactions(trades);
+            result.extendTransactions(trades);
 
         }
         return result;
