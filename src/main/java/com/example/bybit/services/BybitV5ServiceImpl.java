@@ -6,6 +6,8 @@ import com.example.bybit.models.bybitResponses.TransactionV5Object;
 import com.example.bybit.models.bybitResponses.TransactionsV5Object;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.util.concurrent.RateLimiter;
+import okhttp3.Call;
+import okhttp3.Response;
 import org.json.JSONException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,9 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.json.JSONObject;
 
-
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
@@ -27,7 +28,7 @@ import java.util.List;
 @Service
 public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5Service{
     @Override
-    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException, JsonProcessingException {
+    public List<ImportTradeDataHolder> getTransactions(String API_KEY, String API_SECRET) throws JSONException, NoSuchAlgorithmException, InvalidKeyException, InterruptedException, IOException {
         List<ImportTradeDataHolder> transactions = new ArrayList<>();
         List<TransactionsV5Object> responses = this.getAllResponses();
         for (TransactionsV5Object transactionsV5Object : responses) {
@@ -46,7 +47,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return (BalanceV5Object) this.getResponseObject(responseString, BalanceV5Object.class);
     }
 
-    private List<TransactionsV5Object> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
+    private List<TransactionsV5Object> getAllResponses() throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, IOException {
         String cursor = "";
         List<TransactionsV5Object> responses = new ArrayList<>();
         TransactionsV5Object transactionsV5Object = this.getTransactionLog(cursor);
@@ -56,7 +57,6 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
             while (transactionsV5Object.getResult().getNextPageCursor() != null && !transactionsV5Object.getResult().getNextPageCursor().equals("")) {
                 cursor = transactionsV5Object.getResult().getNextPageCursor();
                 rateLimiter.acquire();
-                Thread.sleep(5000);
                 transactionsV5Object = this.getTransactionLog(cursor);
                 responses.add(transactionsV5Object);
             }
@@ -64,7 +64,7 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         return responses;
     }
 
-    private TransactionsV5Object getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
+    private TransactionsV5Object getTransactionLog(String cursor) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, IOException {
         List<String> params = new ArrayList<>();
         params.add("accountType=UNIFIED");
         params.add("limit=5");
@@ -73,28 +73,23 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
         if (!cursor.equals("")) {
             params.add(String.format("cursor=%s", cursor));
         }
-        String responseString = this.getResponse("/v5/account/transaction-log", params);
-        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseString, TransactionsV5Object.class);
+//        String responseString = this.getResponse("/v5/account/transaction-log", params);
+//        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseString, TransactionsV5Object.class);
 
-        String query = String.format("accountType=UNIFIED&limit=5&startTime=%s", this.minTimestamp);
-        JSONObject json = this.getV5Response(cursor, "/v5/account/transaction-log", query);
+        String responseStringV5 = this.getV5Response("/v5/account/transaction-log", params);
+        TransactionsV5Object transactionsV5Object = (TransactionsV5Object) this.getResponseObject(responseStringV5, TransactionsV5Object.class);
 
         if (transactionsV5Object.getRetCode() == 10016) {
             RateLimiter rateLimiter = RateLimiter.create(0.3);
             rateLimiter.acquire();
-//            Thread.sleep(3000);
-//            String time = ZonedDateTime.now().toString();
-//            System.out.println(time);
             return this.getTransactionLog(cursor);
         }
         return transactionsV5Object;
     }
 
-    private JSONObject getV5Response(String cursor, String endpoint, String queryString) throws NoSuchAlgorithmException, InvalidKeyException {
+    private String getV5Response(String endpoint, List<String> params) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
         String TIMESTAMP = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
-        if (!cursor.equals("")) {
-            queryString += String.format("&cursor=%s", cursor);
-        }
+        String queryString = String.join("&", params);
         String signature = convertService.genV5Sign(queryString, TIMESTAMP, this.API_KEY, this.API_SECRET, this.RECV_WINDOW);
         OkHttpClient client = new OkHttpClient().newBuilder().build();
         String url = String.format("%s%s?%s", this.URL, endpoint, queryString);
@@ -108,18 +103,14 @@ public class BybitV5ServiceImpl extends BybitAbstractService implements BybitV5S
                 .addHeader("X-BAPI-RECV-WINDOW", this.RECV_WINDOW)
                 .addHeader("Content-Type", "application/json")
                 .build();
-        return convertService.getJsonObject(client, request);
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return response.body().string();
     }
 
     private String getResponse(String endpoint, List<String> params) throws NoSuchAlgorithmException, InvalidKeyException {
         String TIMESTAMP = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
         String queryString = String.join("&", params);
-//        queryString += String.format("&timestamp=%s", TIMESTAMP);
-//        String signature = this.convertService.genV1Sign(TIMESTAMP, queryString, this.API_SECRET);
-//        queryString += String.format("&sign=%s", signature);
-//        if (!cursor.equals("")) {
-//            queryString += String.format("&cursor=%s", cursor);
-//        }
         String signature = convertService.genV5Sign(queryString, TIMESTAMP, this.API_KEY, this.API_SECRET, this.RECV_WINDOW);
         String url = String.format("%s%s?%s", this.URL, endpoint, queryString);
 

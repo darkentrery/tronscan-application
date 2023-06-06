@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -62,7 +63,7 @@ public class BybitServiceImpl implements BybitService{
     }
 
     @Override
-    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET, String startDate) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, JsonProcessingException {
+    public DealsImportResult getBybitDealImportResult(String API_KEY, String API_SECRET, String startDate) throws NoSuchAlgorithmException, InvalidKeyException, JSONException, InterruptedException, IOException {
         DealsImportResult result = new DealsImportResult();
         this.setMinTimestamp(startDate);
         if (API_KEY != null && API_SECRET != null) {
