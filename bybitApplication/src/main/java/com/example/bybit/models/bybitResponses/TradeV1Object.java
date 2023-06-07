@@ -67,6 +67,7 @@ public class TradeV1Object {
     }
 
     public void setFeeCurrency(String feeTokenId) {
+        this.feeCurrency = feeTokenId;
         String symbol = (String) this.properties.get("symbol");
         if (symbol != null && feeTokenId != null) {
             String currency = symbol.replaceAll(feeTokenId, "");
