@@ -9,14 +9,14 @@
 		<version>3.0.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>Bybit</artifactId>
+	<groupId>ru.intelinvest</groupId>
+	<artifactId>Tronscan</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tronApplication</name>
 	<description>tronApplication</description>
 	<properties>
 		<java.version>17</java.version>
-		<start-class>com.example.tron.BybitApplication</start-class>
+		<start-class>ru.intelinvest.tronscan.TronscanApplication</start-class>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -1,17 +1,18 @@
-2023-05-19 15:07:01,000 INFO  [restartedMain] com.example.tron.BybitApplication - Starting BybitApplication using Java 17.0.6 with PID 7120 (E:\Java\Bybit\tronApplication\target\classes started by Mikhail in E:\Java\Bybit\tronApplication)
-2023-05-19 15:07:01,024 INFO  [restartedMain] com.example.tron.BybitApplication - No active profile set, falling back to 1 default profile: "default"
-2023-05-19 15:07:01,128 INFO  [restartedMain] org.springframework.boot.devtools.env.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2023-05-19 15:07:01,128 INFO  [restartedMain] org.springframework.boot.devtools.env.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2023-05-19 15:07:03,117 INFO  [restartedMain] org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
-2023-05-19 15:07:03,134 INFO  [restartedMain] org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
-2023-05-19 15:07:03,135 INFO  [restartedMain] org.apache.catalina.core.StandardService - Starting service [Tomcat]
-2023-05-19 15:07:03,136 INFO  [restartedMain] org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.7]
-2023-05-19 15:07:03,261 INFO  [restartedMain] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2023-05-19 15:07:03,267 INFO  [restartedMain] org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2133 ms
-2023-05-19 15:07:04,281 INFO  [restartedMain] org.springframework.boot.devtools.autoconfigure.OptionalLiveReloadServer - LiveReload server is running on port 35729
-2023-05-19 15:07:04,305 INFO  [restartedMain] org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
-2023-05-19 15:07:04,349 INFO  [restartedMain] org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
-2023-05-19 15:07:04,375 INFO  [restartedMain] com.example.tron.BybitApplication - Started BybitApplication in 4.024 seconds (process running for 5.909)
-2023-05-19 15:07:21,314 INFO  [http-nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2023-05-19 15:07:21,315 INFO  [http-nio-8080-exec-1] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2023-05-19 15:07:21,316 INFO  [http-nio-8080-exec-1] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2023-06-13 14:07:28,458 INFO  [restartedMain] ru.intelinvest.tronscan.TronscanApplication - Starting TronscanApplication using Java 17.0.6 with PID 15900 (E:\Java\Bybit\tronApplication\target\classes started by Mikhail in E:\Java\Bybit\tronApplication)
+2023-06-13 14:07:28,488 INFO  [restartedMain] ru.intelinvest.tronscan.TronscanApplication - No active profile set, falling back to 1 default profile: "default"
+2023-06-13 14:07:28,583 INFO  [restartedMain] org.springframework.boot.devtools.env.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2023-06-13 14:07:28,583 INFO  [restartedMain] org.springframework.boot.devtools.env.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2023-06-13 14:07:31,356 INFO  [restartedMain] org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2023-06-13 14:07:31,374 INFO  [restartedMain] org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2023-06-13 14:07:31,375 INFO  [restartedMain] org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2023-06-13 14:07:31,376 INFO  [restartedMain] org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.7]
+2023-06-13 14:07:31,504 INFO  [restartedMain] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2023-06-13 14:07:31,508 INFO  [restartedMain] org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2921 ms
+2023-06-13 14:07:32,487 INFO  [restartedMain] org.springframework.boot.devtools.autoconfigure.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2023-06-13 14:07:32,514 INFO  [restartedMain] org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2023-06-13 14:07:32,572 INFO  [restartedMain] org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2023-06-13 14:07:32,596 INFO  [restartedMain] ru.intelinvest.tronscan.TronscanApplication - Started TronscanApplication in 4.806 seconds (process running for 7.283)
+2023-06-13 14:09:01,916 INFO  [http-nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-06-13 14:09:01,916 INFO  [http-nio-8080-exec-1] org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2023-06-13 14:09:01,918 INFO  [http-nio-8080-exec-1] org.springframework.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2023-06-13 14:09:08,219 ERROR [http-nio-8080-exec-1] ru.intelinvest.tronscan.controllers.MainController - 400 Bad Request: "{"success":false,"error":"A valid account address is required.","statusCode":400}"
