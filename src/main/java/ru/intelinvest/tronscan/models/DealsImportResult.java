@@ -33,7 +33,7 @@ public class DealsImportResult {
     private boolean reportValid;
 
     /** Дополнительные инструкции для обработки транзаций */
-    private ParseInstruction parseInstruction;
+    private ParseInstruction parseInstruction = new ParseInstruction();
 
     public void setCurrentMoneyRemainders(Map<String, BigDecimal> currentMoneyRemainders) {
         this.currentMoneyRemainders = currentMoneyRemainders;
